@@ -7,45 +7,207 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
-        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
-            <h2 class="text-base font-bold text-white tracking-wide">Youth Service Attendance Log</h2>
-            <button class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg transition font-medium cursor-pointer flex items-center gap-1.5"><i data-lucide="check-square"></i> Record Service Headcount</button>
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
+            <h2 class="text-base font-bold text-white tracking-wide">Service Attendance Analytics</h2>
+            <button onclick="openAttendanceModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Record Headcount
+            </button>
         </header>
 
-        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto space-y-4">
-            <div class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
-                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 text-xs font-bold uppercase tracking-wider text-slate-300">Historical Services Ledger</div>
-                <div class="overflow-x-auto text-xs">
+        <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-4xl w-full mx-auto">
+            
+            <div class="grid grid-cols-2 gap-4 mb-5 text-xs">
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl shadow-sm">
+                    <p class="text-slate-400 font-medium uppercase tracking-wider text-[10px]">Highest Attended Service</p>
+                    <h3 id="stat-peak-count" class="text-xl font-bold text-emerald-400 mt-1">0</h3>
+                </div>
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl shadow-sm">
+                    <p class="text-slate-400 font-medium uppercase tracking-wider text-[10px]">Average Running Metric</p>
+                    <h3 id="stat-avg-count" class="text-xl font-bold text-indigo-400 mt-1">0</h3>
+                </div>
+            </div>
+
+            <section class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
+                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Attendance Logs Ledger</span>
+                    <span class="text-[10px] text-slate-400 font-medium" id="record-count-badge">0 entries stored</span>
+                </div>
+
+                <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-700/60 bg-slate-900/30 text-[10px] uppercase tracking-wider text-slate-400">
-                                <th class="py-2.5 px-4">Service Date</th>
-                                <th class="py-2.5 px-4">Total Attended Headcount</th>
-                                <th class="py-2.5 px-4">Variance Performance Rate</th>
+                                <th class="py-3 px-5">Scheduled Service Date</th>
+                                <th class="py-3 px-5">Total Attendance Headcount</th>
+                                <th class="py-3 px-5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-700/40 text-slate-300">
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Sunday, June 7, 2026</td><td class="py-3 px-4">142 Present</td><td class="py-3 px-4 text-emerald-400 font-semibold">+6% increase</td></tr>
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Sunday, May 31, 2026</td><td class="py-3 px-4">134 Present</td><td class="py-3 px-4 text-slate-400 font-semibold">Baseline stable</td></tr>
-                        </tbody>
+                        <tbody id="attendance-table-body" class="divide-y divide-slate-700/40 text-[11px] text-slate-300">
+                            </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
+    <div id="attendance-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm p-4 space-y-4 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                <h3 class="font-bold text-white text-sm flex items-center gap-1.5">
+                    <i data-lucide="bar-chart-3" class="text-indigo-400 w-4 h-4"></i> Record Service Headcount
+                </h3>
+                <button onclick="closeAttendanceModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            
+            <form onsubmit="handleNewHeadcount(event)" class="space-y-3.5">
+                <div>
+                    <label class="block text-slate-400 mb-1 font-medium">Service Metric Date</label>
+                    <div class="relative">
+                        <input type="date" id="att-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500 font-sans">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-slate-400 mb-1 font-medium">Total Attendance Headcount</label>
+                    <input type="number" id="att-count" min="0" placeholder="e.g. 150" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500 tracking-wide font-medium">
+                </div>
+                
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700">
+                    <button type="button" onclick="closeAttendanceModal()" class="bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-medium cursor-pointer transition hover:bg-slate-600">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer transition hover:bg-indigo-500 shadow-md">Save Log Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // Data Registry stored locally via browser space to preserve inputs across operations
+        let attendanceLogs = JSON.parse(localStorage.getItem('church-attendance')) || [
+            { id: 1, date: "2026-06-07", count: 142 },
+            { id: 2, date: "2026-05-31", count: 165 },
+            { id: 3, date: "2026-05-24", count: 128 }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            refreshAttendanceDisplay();
+        });
+
+        function openAttendanceModal() {
+            // Pre-sets field values automatically to current calendar date for convenience
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("att-date").value = today;
+            document.getElementById("att-count").value = "";
+            document.getElementById("attendance-modal").classList.remove("hidden");
+        }
+
+        function closeAttendanceModal() {
+            document.getElementById("attendance-modal").classList.add("hidden");
+        }
+
+        function handleNewHeadcount(e) {
+            e.preventDefault();
+            
+            const rawDate = document.getElementById("att-date").value;
+            const rawCount = parseInt(document.getElementById("att-count").value, 10);
+
+            if (!rawDate || isNaN(rawCount)) return;
+
+            // Push item onto top of current list view
+            attendanceLogs.unshift({
+                id: Date.now(),
+                date: rawDate,
+                count: rawCount
+            });
+
+            localStorage.setItem('church-attendance', JSON.stringify(attendanceLogs));
+            refreshAttendanceDisplay();
+            closeAttendanceModal();
+        }
+
+        function deleteRecord(id) {
+            if(confirm("Are you sure you want to drop this selected attendance log record completely?")) {
+                attendanceLogs = attendanceLogs.filter(item => item.id !== id);
+                localStorage.setItem('church-attendance', JSON.stringify(attendanceLogs));
+                refreshAttendanceDisplay();
+            }
+        }
+
+        // Clean utility script to format ISO date nodes to readable regional context
+        function formatChurchDate(inputString) {
+            const dateObj = new Date(inputString);
+            if(isNaN(dateObj)) return inputString;
+            return dateObj.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function refreshAttendanceDisplay() {
+            const body = document.getElementById("attendance-table-body");
+            body.innerHTML = "";
+
+            // Sort dates from newest to oldest automatically
+            attendanceLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let maxCount = 0;
+            let sumTotal = 0;
+
+            attendanceLogs.forEach(entry => {
+                if (entry.count > maxCount) maxCount = entry.count;
+                sumTotal += entry.count;
+
+                body.innerHTML += `
+                <tr class="hover:bg-slate-700/20 transition-colors">
+                    <td class="py-3 px-5 font-medium text-white">${formatChurchDate(entry.date)}</td>
+                    <td class="py-3 px-5">
+                        <span class="bg-indigo-500/10 text-indigo-300 font-bold px-2.5 py-0.5 rounded border border-indigo-500/20 font-mono text-xs">
+                            ${entry.count.toLocaleString()} people
+                        </span>
+                    </td>
+                    <td class="py-3 px-5 text-right">
+                        <button onclick="deleteRecord(${entry.id})" class="text-slate-500 hover:text-rose-400 p-1 rounded hover:bg-slate-900/50 transition cursor-pointer" title="Delete Entry Log">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            // Fallback safety if database registers empty structural objects
+            if(attendanceLogs.length === 0) {
+                body.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-500 font-medium">No recorded headcounts inside database logs yet.</td></tr>`;
+            }
+
+            // Calculate dynamic structural summary badge metrics
+            const averageCount = attendanceLogs.length > 0 ? Math.round(sumTotal / attendanceLogs.length) : 0;
+            
+            document.getElementById("stat-peak-count").innerText = maxCount.toLocaleString();
+            document.getElementById("stat-avg-count").innerText = averageCount.toLocaleString();
+            document.getElementById("record-count-badge").innerText = `${attendanceLogs.length} entries stored`;
+
+            lucide.createIcons();
+        }
+
+        // Shared universal dynamic template sidebar frame logic injection
         fetch('index.html').then(res => res.text()).then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
             const container = document.getElementById('sidebar-container');
-            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
-            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.className = doc.querySelector('aside').className;
+            container.id = "sidebar-menu";
+            container.innerHTML = doc.querySelector('aside').innerHTML;
+            
+            // Adjust highlighting classes for links perfectly
             container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-            container.querySelector('a[href="attendance.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            
+            // Looks for an existing attendance link in your sidebar array or attaches active style safely
+            const attendanceLink = container.querySelector('a[href="attendance.html"]');
+            if(attendanceLink) {
+                attendanceLink.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            }
             lucide.createIcons();
         });
     </script>

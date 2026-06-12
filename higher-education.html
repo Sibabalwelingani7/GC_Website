@@ -7,68 +7,222 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
+    <input type="file" id="global-campus-file-picker" accept="image/*" class="hidden" onchange="handleInlineCampusPhoto(event)">
+
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
-        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <h2 class="text-base font-bold text-white tracking-wide">Universities & Colleges Database</h2>
-            <button onclick="toggleModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow"><i data-lucide="plus"></i> Add Campus Node</button>
+            <button onclick="openCampusModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
+                <i data-lucide="plus"></i> Add Campus Node
+            </button>
         </header>
 
-        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto">
-            <div id="campuses-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
+            <div id="campuses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                 </div>
         </main>
     </div>
 
     <div id="add-campus-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm p-4 space-y-4 text-xs">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-2"><h3 class="font-bold text-white text-sm">Add Higher Ed Institute</h3><button onclick="toggleModal(false)" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                <h3 class="font-bold text-white text-sm">Add Higher Ed Institute</h3>
+                <button onclick="closeCampusModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
             <form onsubmit="handleNewCampus(event)" class="space-y-3">
+                <div>
+                    <label class="block text-slate-400 mb-1">Campus Image Asset Banner</label>
+                    <div class="flex items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-700">
+                        <div id="campus-image-preview" class="w-10 h-10 rounded bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                            <i data-lucide="building-2" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                        <input type="file" id="c-photo" accept="image/*" onchange="previewCampusImage(event)" class="text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 file:cursor-pointer">
+                    </div>
+                </div>
                 <div><label class="block text-slate-400 mb-1">Campus Name</label><input type="text" id="c-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none"></div>
-                <div><label class="block text-slate-400 mb-1">Classification Category</label><select id="c-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="University">University</option><option value="College">College</option></select></div>
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700"><button type="button" onclick="toggleModal(false)" class="bg-slate-700 px-3 py-1.5 rounded-lg">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg">Save Campus</button></div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Classification Category</label>
+                    <select id="c-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none">
+                        <option value="University">University</option>
+                        <option value="College">College</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700">
+                    <button type="button" onclick="closeCampusModal()" class="bg-slate-700 px-3 py-1.5 rounded-lg">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg">Save Campus</button>
+                </div>
             </form>
         </div>
     </div>
 
+    <div id="view-enrolled-members-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl p-5 space-y-4 relative text-xs flex flex-col max-h-[85vh]">
+            <button onclick="closeEnrolledModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer bg-slate-900/40 p-1.5 rounded-lg border border-slate-700/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+            
+            <div class="border-b border-slate-700/60 pb-2">
+                <h3 id="enrolled-title" class="text-sm font-bold text-white tracking-wide"></h3>
+                <p class="text-[10px] text-violet-400 font-semibold tracking-wider uppercase mt-0.5">Enrolled Student Registry</p>
+            </div>
+
+            <div id="enrolled-members-list" class="space-y-2 overflow-y-auto pr-1 flex-1">
+                </div>
+            
+            <div class="pt-2 border-t border-slate-700 flex justify-end">
+                <button onclick="closeEnrolledModal()" class="bg-slate-900 text-slate-300 font-semibold px-4 py-1.5 rounded-lg hover:bg-slate-700 transition cursor-pointer">Close Registry</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let campuses = JSON.parse(localStorage.getItem('church-campuses')) || [
-            { name: "University of Cape Town (UCT)", type: "University" },
-            { name: "Cape Peninsula University of Technology (CPUT)", type: "University" },
-            { name: "False Bay TVET College", type: "College" }
+        let initialMembers = [
+            { name: "Thabo Ndlovu", phone: "082 111 2233", target: "Cape Town High School", photo: "" },
+            { name: "Sarah Jenkins", phone: "071 444 5566", target: "University of Cape Town (UCT)", photo: "" },
+            { name: "Lwazi Sithole", phone: "063 777 8899", target: "Belhar High School", photo: "" }
         ];
-        localStorage.setItem('church-campuses', JSON.stringify(campuses));
+
+        let campuses = JSON.parse(localStorage.getItem('church-campuses')) || [
+            { id: 1, name: "University of Cape Town (UCT)", type: "University", photo: "" },
+            { id: 2, name: "Cape Peninsula University of Technology (CPUT)", type: "University", photo: "" },
+            { id: 3, name: "False Bay TVET College", type: "College", photo: "" }
+        ];
+
+        let campusPhotoBase64 = "";
+        let inlineTargetCampusId = null;
 
         document.addEventListener("DOMContentLoaded", () => { refreshGrid(); });
-        function toggleModal(show) { document.getElementById("add-campus-modal").classList.toggle("hidden", !show); }
+        
+        function openCampusModal() {
+            document.getElementById("campus-image-preview").innerHTML = `<i data-lucide="building-2" class="w-5 h-5 text-slate-500"></i>`;
+            campusPhotoBase64 = "";
+            document.getElementById("add-campus-modal").classList.remove("hidden");
+        }
+        function closeCampusModal() { document.getElementById("add-campus-modal").classList.add("hidden"); }
+
+        function previewCampusImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    campusPhotoBase64 = e.target.result;
+                    document.getElementById("campus-image-preview").innerHTML = `<img src="${campusPhotoBase64}" class="w-full h-full object-cover">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Trigger dynamic inline upload for campus modules displayed on grid
+        function triggerInlineCampusPhoto(id, event) {
+            event.stopPropagation();
+            inlineTargetCampusId = id;
+            document.getElementById("global-campus-file-picker").click();
+        }
+
+        function handleInlineCampusPhoto(event) {
+            const file = event.target.files[0];
+            if (file && inlineTargetCampusId) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const campus = campuses.find(c => c.id === inlineTargetCampusId);
+                    if (campus) {
+                        campus.photo = e.target.result;
+                        localStorage.setItem('church-campuses', JSON.stringify(campuses));
+                        refreshGrid();
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
 
         function handleNewCampus(e) {
             e.preventDefault();
-            campuses.push({ name: document.getElementById("c-name").value, type: document.getElementById("c-type").value });
+            campuses.push({
+                id: Date.now(),
+                name: document.getElementById("c-name").value,
+                type: document.getElementById("c-type").value,
+                photo: campusPhotoBase64
+            });
             localStorage.setItem('church-campuses', JSON.stringify(campuses));
-            refreshGrid(); toggleModal(false); e.target.reset();
+            refreshGrid(); closeCampusModal(); e.target.reset();
         }
+
+        function deleteCampus(id, event) {
+            event.stopPropagation();
+            if(confirm("Are you sure you want to delete this higher education asset node?")) {
+                campuses = campuses.filter(c => c.id !== id);
+                localStorage.setItem('church-campuses', JSON.stringify(campuses));
+                refreshGrid();
+            }
+        }
+
+        function showEnrolledMembers(campusName) {
+            document.getElementById("enrolled-title").innerText = campusName;
+            const container = document.getElementById("enrolled-members-list");
+            container.innerHTML = "";
+
+            const matched = initialMembers.filter(m => m.target === campusName);
+
+            if(matched.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 py-4 text-center">No students are currently linked to this higher education layout track.</p>`;
+            } else {
+                matched.forEach(m => {
+                    const avatar = m.photo 
+                        ? `<img src="${m.photo}" class="w-7 h-7 rounded-full object-cover">`
+                        : `<div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white uppercase">${m.name.charAt(0)}</div>`;
+                    
+                    container.innerHTML += `
+                    <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/40">
+                        <div class="flex items-center gap-2.5">
+                            ${avatar}
+                            <div><p class="font-bold text-white">${m.name}</p><p class="text-[10px] text-slate-400 font-mono mt-0.5">${m.phone}</p></div>
+                        </div>
+                    </div>`;
+                });
+            }
+            lucide.createIcons();
+            document.getElementById("view-enrolled-members-modal").classList.remove("hidden");
+        }
+
+        function closeEnrolledModal() { document.getElementById("view-enrolled-members-modal").classList.add("hidden"); }
 
         function refreshGrid() {
             const grid = document.getElementById("campuses-grid"); grid.innerHTML = "";
             campuses.forEach(c => {
-                const color = c.type === 'University' ? 'bg-violet-500/10 text-violet-400 border-violet-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                const badgeColor = c.type === 'University' ? 'bg-violet-500/10 text-violet-400 border-violet-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                
+                const imgDisplay = c.photo 
+                    ? `<img src="${c.photo}" class="w-full h-full object-cover">`
+                    : `<i data-lucide="building-2" class="w-5 h-5"></i>`;
+
                 grid.innerHTML += `
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center gap-3">
-                    <div class="w-10 h-10 ${color} rounded-lg flex items-center justify-center font-bold text-lg border shrink-0"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-                    <div><h4 class="font-bold text-white text-sm">${c.name}</h4><p class="text-slate-500 text-[10px] uppercase tracking-wide font-semibold mt-0.5">${c.type}</p></div>
+                <div onclick="showEnrolledMembers('${c.name}')" class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center justify-between shadow-sm hover:border-violet-500 transition-all duration-200 cursor-pointer group">
+                    <div class="flex items-center gap-3">
+                        <div class="relative w-11 h-11 ${badgeColor} rounded-lg flex items-center justify-center font-bold text-lg border shrink-0 overflow-hidden group/avatar">
+                            ${imgDisplay}
+                            <div onclick="triggerInlineCampusPhoto(${c.id}, event)" class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition duration-150" title="Upload Photo">
+                                <i data-lucide="camera" class="w-3.5 h-3.5 text-white"></i>
+                            </div>
+                        </div>
+                        <div><h4 class="font-bold text-white text-sm group-hover:text-violet-400 transition-colors">${c.name}</h4><p class="text-slate-500 text-[10px] uppercase tracking-wide font-semibold mt-0.5">${c.type}</p></div>
+                    </div>
+                    <button onclick="deleteCampus(${c.id}, event)" class="text-slate-500 hover:text-rose-400 p-1.5 rounded hover:bg-slate-900/50 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>`;
             });
             lucide.createIcons();
         }
 
         fetch('index.html').then(res => res.text()).then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
             const container = document.getElementById('sidebar-container');
-            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
-            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.className = doc.querySelector('aside').className;
+            container.id = "sidebar-menu";
+            container.innerHTML = doc.querySelector('aside').innerHTML;
             container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
             container.querySelector('a[href="higher-education.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
             lucide.createIcons();

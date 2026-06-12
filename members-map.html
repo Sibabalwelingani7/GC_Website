@@ -3,52 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Glorious Church - Members Map</title>
+    <title>The Glorious Church - Member Density Map</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet CSS & JS Assets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        .leaflet-popup-content-wrapper { background: #1e293b; color: #f8fafc; border: 1px solid #475569; border-radius: 0.5rem; }
+        .leaflet-popup-tip { background: #1e293b; border: 1px solid #475569; }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <!-- MOBILE NAVIGATION OVERLAY FRAMES -->
+    <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
-        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
-            <h2 class="text-base font-bold text-white tracking-wide">Congregation Density Location Frame</h2>
-            <div class="text-[11px] text-slate-400">Members Map</div>
+        <!-- Main Layout Header Frame -->
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
+            <div class="flex flex-col">
+                <h2 class="text-base font-bold text-white tracking-wide">Congregation Density & Cell Groups</h2>
+                <p class="text-[10px] text-slate-400">Visual mapping of active fellowship pockets across the Cape Peninsula</p>
+            </div>
+            <div class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
+                Live Directory Feed
+            </div>
         </header>
 
-        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto">
-            <div class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow h-[520px]">
-                <div id="map" class="h-full w-full bg-slate-950"></div>
+        <!-- Main Workspace Map Frame -->
+        <main class="p-4 md:p-6 flex-1 flex flex-col overflow-hidden">
+            <div class="bg-slate-800 border border-slate-700/70 rounded-xl overflow-hidden shadow-xl flex-1 flex flex-col relative">
+                <!-- Map Header Ribbon -->
+                <div class="p-3 border-b border-slate-700/70 bg-slate-800/40 flex justify-between items-center shrink-0 z-10">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i> Active Fellowship Hubs
+                    </span>
+                    <span class="text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded" id="member-counter">
+                        Mapping Pockets
+                    </span>
+                </div>
+
+                <!-- Interactive Map Canvas Element -->
+                <div id="members-map" class="w-full flex-1 z-0 bg-slate-950"></div>
             </div>
         </main>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MAIN SYSTEM MAPPING LOGIC ENGINE -->
     <script>
-        const memberCoordinates = [
-            { name: "Thabo Ndlovu", area: "Gugulethu Cluster", lat: -33.987, lng: 18.551 },
-            { name: "Sarah Jenkins", area: "Rondebosch Group", lat: -33.965, lng: 18.472 },
-            { name: "Lwazi Sithole", area: "Belhar Cell Node", lat: -33.931, lng: 18.629 }
-        ];
-
         document.addEventListener("DOMContentLoaded", () => {
-            const map = L.map('map', { zoomControl: false }).setView([-33.958, 18.53], 11);
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-            memberCoordinates.forEach(m => {
-                L.marker([m.lat, m.lng]).addTo(map).bindPopup(`<div class="text-slate-900 text-xs"><b>${m.name}</b><br>${m.area} Home Resident Pin</div>`);
-            });
+            initMembersMap();
         });
 
+        function initMembersMap() {
+            // Center map view cleanly across Cape Town metro coordinates
+            const map = L.map('members-map').setView([-33.9249, 18.4241], 11);
+
+            // Premium Light, Clean-cut High Contrast mapping tiles layer 
+            L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20,
+                attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Generic structural demographic layout pins mapping congregational sizes
+            const memberHubs = [
+                { region: "Belhar Fellowship Hub", coords: [-33.9450, 18.6150], count: 85, lead: "Pastor G. Jacobs" },
+                { region: "Delft Community Cell", coords: [-33.9760, 18.5940], count: 62, lead: "Brother M. Ndlovu" },
+                { region: "Bellville Group Circle", coords: [-33.8940, 18.6290], count: 41, lead: "Sister L. Botha" },
+                { region: "Mitchells Plain Outreach", coords: [-34.0480, 18.6040], count: 110, lead: "Pastor D. Williams" },
+                { region: "Khayelitsha Fellowship", coords: [-34.0210, 18.6780], count: 94, lead: "Evangelist J. Sithole" },
+                { region: "Cape Town Central Study", coords: [-33.9250, 18.4230], count: 35, lead: "Sister A. Daniels" }
+            ];
+
+            // Render descriptive map clusters manually via Leaflet bounds loops
+            memberHubs.forEach(hub => {
+                const marker = L.marker(hub.coords).addTo(map);
+                
+                const popupContent = `
+                    <div class="p-1">
+                        <h4 class="font-bold text-emerald-400 text-xs mb-0.5">${hub.region}</h4>
+                        <p class="text-[10px] text-slate-300 font-sans">Leader: <strong>${hub.lead}</strong></p>
+                        <div class="mt-2 pt-1 border-t border-slate-700/60 text-[9px] text-slate-400 flex justify-between items-center">
+                            <span class="bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded text-[9px] font-mono">${hub.count} Active Members</span>
+                        </div>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+            });
+
+            map.on('popupopen', () => { lucide.createIcons(); });
+            document.getElementById("member-counter").innerText = `${memberHubs.length} Clusters Charted`;
+        }
+
+        // Shared universal dynamic template sidebar frame logic injection
         fetch('index.html').then(res => res.text()).then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
             const container = document.getElementById('sidebar-container');
-            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
-            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.className = doc.querySelector('aside').className;
+            container.id = "sidebar-menu";
+            container.innerHTML = doc.querySelector('aside').innerHTML;
+            
             container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-            container.querySelector('a[href="members-map.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            
+            const membersMapLink = container.querySelector('a[href="members-map.html"]');
+            if(membersMapLink) {
+                membersMapLink.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            }
             lucide.createIcons();
         });
     </script>

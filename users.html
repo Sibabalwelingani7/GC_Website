@@ -7,56 +7,341 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <!-- MOBILE NAVIGATION OVERLAY FRAMES -->
+    <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
-        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
-            <h2 class="text-base font-bold text-white tracking-wide">System Users & Administrative Roles</h2>
-            <div class="text-[11px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded font-medium border border-indigo-500/20">Authorized Accounts</div>
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
+            <h2 class="text-base font-bold text-white tracking-wide">System Users & Administrative Staff</h2>
+            <div class="text-[11px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded font-medium border border-indigo-500/20">Portal Control Hub</div>
         </header>
 
-        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto space-y-4">
-            <div class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
-                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex justify-between items-center">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Staff & Leader Registries</h3>
+        <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
+            <section class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
+                
+                <!-- Expanded Operational Control Ribbon -->
+                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex flex-col xl:flex-row gap-3 justify-between items-center">
+                    <div class="flex items-center justify-between w-full xl:w-auto gap-4">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Staff Controls</span>
+                        <button onclick="toggleSortDirection()" class="bg-slate-900 text-[11px] text-slate-300 px-2.5 py-1.5 border border-slate-700 rounded-lg hover:text-white flex items-center gap-1 cursor-pointer">
+                            <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i> Sort Name: <span id="sort-direction-indicator" class="font-bold text-indigo-400">A-Z</span>
+                        </button>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2 w-full xl:w-auto items-stretch sm:items-center">
+                        <input id="search-user-input" oninput="filterUsers()" type="text" placeholder="Search system users..." class="bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-3 py-1.5 text-[11px] text-white focus:outline-none">
+                        
+                        <!-- System Role Filtering Drop-down Option -->
+                        <select id="filter-user-role" onchange="filterUsers()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none cursor-pointer">
+                            <option value="all">All Administrative Roles</option>
+                            <option value="Admin">Admin Only</option>
+                            <option value="Pastor">Pastors Only</option>
+                            <option value="Creative Arts Leader">Creative Arts Leaders</option>
+                        </select>
+
+                        <button onclick="openAddUserModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add User
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Main Data Grid Table Frame -->
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-700/60 bg-slate-900/30 text-[10px] uppercase tracking-wider text-slate-400">
-                                <th class="py-2.5 px-4">Name</th>
-                                <th class="py-2.5 px-4">Email Address</th>
-                                <th class="py-2.5 px-4">Assigned Role Privilege</th>
+                                <th class="py-2.5 px-4 w-[60px]">Avatar</th>
+                                <th class="py-2.5 px-4">Staff Member Name</th>
+                                <th class="py-2.5 px-4">Secure Log Email</th>
+                                <th class="py-2.5 px-4">Assigned Portal Role</th>
+                                <th class="py-2.5 px-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-700/40 text-slate-300">
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Pastor Emmanuel</td><td class="py-3 px-4">emmanuel@thegloriouschurch.org</td><td class="py-3 px-4 text-indigo-400 font-medium">Pastor</td></tr>
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Sis Noni Ndlovu</td><td class="py-3 px-4">noni@thegloriouschurch.org</td><td class="py-3 px-4 text-emerald-400 font-medium">Admin</td></tr>
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Thabo Mokoena</td><td class="py-3 px-4">thabo@thegloriouschurch.org</td><td class="py-3 px-4 text-amber-400 font-medium">Creative Arts Leader</td></tr>
-                            <tr class="hover:bg-slate-700/20"><td class="py-3 px-4 font-semibold text-white">Zama Cele</td><td class="py-3 px-4">zama@thegloriouschurch.org</td><td class="py-3 px-4 text-sky-400 font-medium">High School Leader</td></tr>
+                        <tbody id="user-table-body" class="divide-y divide-slate-700/40 text-[11px] text-slate-300">
+                            <!-- Populated dynamically by engine -->
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
+    <!-- USER REGISTRATION & EDIT MODAL FORM -->
+    <div id="add-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm shadow-xl p-4 space-y-3 text-xs overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                <h3 id="user-modal-title" class="font-bold text-white text-sm flex items-center gap-1.5">
+                    <i data-lucide="user-plus" class="text-indigo-400"></i> Create Staff Account
+                </h3>
+                <button onclick="closeUserModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="add-user-form" onsubmit="handleUserFormSubmit(event)" class="space-y-3">
+                <input type="hidden" id="edit-user-id" value="">
+                
+                <!-- Profile Image Upload Field Row -->
+                <div>
+                    <label class="block text-slate-400 mb-0.5">Staff Profile Picture</label>
+                    <div class="flex items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-700">
+                        <div id="user-image-preview" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                            <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                        <input type="file" id="u-photo" accept="image/*" onchange="previewUserImage(event)" class="text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 file:cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div><label class="block text-slate-400 mb-0.5">Full Name</label><input type="text" id="u-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none"></div>
+                    <div><label class="block text-slate-400 mb-0.5">Email Address</label><input type="email" id="u-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none"></div>
+                    <div>
+                        <label class="block text-slate-400 mb-0.5">Portal Administrative Role</label>
+                        <select id="u-role" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none cursor-pointer">
+                            <option value="Admin">Admin</option>
+                            <option value="Pastor">Pastor</option>
+                            <option value="Creative Arts Leader">Creative Arts Leader</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700">
+                    <button type="button" onclick="closeUserModal()" class="bg-slate-700 px-3 py-1.5 rounded-lg cursor-pointer">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium cursor-pointer">Save User Access</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VIEW DETAILED USER PROFILE POP-UP -->
+    <div id="view-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl p-5 space-y-4 relative text-xs">
+            <button onclick="closeViewUserModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer bg-slate-900/40 p-1.5 rounded-lg border border-slate-700/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+            
+            <div class="text-center space-y-2 pb-3 border-b border-slate-700/60">
+                <div id="view-user-avatar-box" class="w-16 h-16 rounded-full mx-auto bg-slate-700 border-2 border-indigo-500 overflow-hidden flex items-center justify-center text-xl font-bold uppercase text-white shadow-md"></div>
+                <div>
+                    <h3 id="view-user-name" class="text-sm font-bold text-white tracking-wide"></h3>
+                    <span id="view-user-badge" class="inline-block text-[9px] bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30 px-2 py-0.5 rounded uppercase tracking-wider mt-1"></span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-start gap-2.5">
+                    <div class="text-slate-500 mt-0.5"><i data-lucide="mail" class="w-3.5 h-3.5"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Authorized Login Email</p>
+                        <p id="view-user-email" class="text-slate-200 mt-0.5 font-mono"></p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <div class="text-slate-500 mt-0.5"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Security Access Tier</p>
+                        <p id="view-user-access-desc" class="text-slate-300 mt-0.5">Can add/edit records corresponding to structural church criteria.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-2 flex justify-center">
+                <button onclick="closeViewUserModal()" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-4 py-1.5 rounded-lg transition cursor-pointer">Close Overview</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SYSTEM USERS CONTROLLER SCRIPT -->
     <script>
-        // Inline layout generation wrapper to maintain sidebar continuity
+        // Core initial arrays containing custom assigned staff records
+        let systemUsers = [
+            { id: 1, name: "Pastor Jason", email: "jason@thegloriouschurch.org", role: "Admin", photo: "" },
+            { id: 2, name: "Pastor Chris", email: "chris@thegloriouschurch.org", role: "Pastor", photo: "" },
+            { id: 3, name: "Destiny Manuel", email: "destiny@thegloriouschurch.org", role: "Creative Arts Leader", photo: "" },
+            { id: 4, name: "Chelsea Ross", email: "chelsea@thegloriouschurch.org", role: "Creative Arts Leader", photo: "" },
+            { id: 5, name: "Jade Mienies", email: "jade@thegloriouschurch.org", role: "Creative Arts Leader", photo: "" }
+        ];
+
+        let currentSortMode = "A-Z"; // Can switch explicitly between A-Z and Z-A
+        let rawUserPhotoBase64 = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderUserTable(systemUsers);
+        });
+
+        function openAddUserModal() {
+            document.getElementById("user-modal-title").innerHTML = `<i data-lucide="user-plus" class="text-indigo-400"></i> Create Staff Account`;
+            document.getElementById("edit-user-id").value = "";
+            document.getElementById("add-user-form").reset();
+            rawUserPhotoBase64 = "";
+            document.getElementById("user-image-preview").innerHTML = `<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>`;
+            lucide.createIcons();
+            document.getElementById("add-user-modal").classList.remove("hidden");
+        }
+
+        function closeUserModal() { document.getElementById("add-user-modal").classList.add("hidden"); }
+
+        function openViewUserModal(id) {
+            const user = systemUsers.find(u => u.id === id);
+            if (!user) return;
+
+            document.getElementById("view-user-name").innerText = user.name;
+            document.getElementById("view-user-badge").innerText = user.role;
+            document.getElementById("view-user-email").innerText = user.email;
+
+            const avatarBox = document.getElementById("view-user-avatar-box");
+            if (user.photo) {
+                avatarBox.innerHTML = `<img src="${user.photo}" class="w-full h-full object-cover">`;
+            } else {
+                avatarBox.innerHTML = user.name.charAt(0);
+            }
+
+            lucide.createIcons();
+            document.getElementById("view-user-modal").classList.remove("hidden");
+        }
+
+        function closeViewUserModal() { document.getElementById("view-user-modal").classList.add("hidden"); }
+
+        function previewUserImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    rawUserPhotoBase64 = e.target.result;
+                    document.getElementById("user-image-preview").innerHTML = `<img src="${rawUserPhotoBase64}" class="w-full h-full object-cover">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function toggleMobileMenu() { document.getElementById("sidebar-menu").classList.toggle("-translate-x-full"); }
+
+        function renderUserTable(data) {
+            const body = document.getElementById("user-table-body");
+            body.innerHTML = "";
+
+            data.forEach((user) => {
+                const avatarRender = user.photo
+                    ? `<img src="${user.photo}" onclick="openViewUserModal(${user.id})" class="w-7 h-7 rounded-full object-cover border border-slate-700 cursor-pointer hover:border-indigo-400 transition">`
+                    : `<div onclick="openViewUserModal(${user.id})" class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold uppercase cursor-pointer hover:bg-slate-600 transition">${user.name.charAt(0)}</div>`;
+
+                let roleBadgeColor = "bg-slate-900 border-slate-700 text-slate-300";
+                if(user.role === 'Admin') roleBadgeColor = "bg-rose-500/10 border-rose-500/20 text-rose-400 font-semibold";
+                if(user.role === 'Pastor') roleBadgeColor = "bg-amber-500/10 border-amber-500/20 text-amber-400 font-semibold";
+                if(user.role === 'Creative Arts Leader') roleBadgeColor = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-semibold";
+
+                body.innerHTML += `
+                <tr class="hover:bg-slate-700/20">
+                    <td class="py-2.5 px-4">${avatarRender}</td>
+                    <td class="py-2.5 px-4 font-bold text-white">
+                        <div onclick="openViewUserModal(${user.id})" class="cursor-pointer hover:text-indigo-400 hover:underline transition">${user.name}</div>
+                    </td>
+                    <td class="py-2.5 px-4 font-mono text-slate-400">${user.email}</td>
+                    <td class="py-2.5 px-4">
+                        <span class="px-2 py-0.5 rounded border text-[10px] uppercase tracking-wide ${roleBadgeColor}">${user.role}</span>
+                    </td>
+                    <td class="py-2.5 px-4 text-right space-x-1">
+                        <button onclick="editUser(${user.id})" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i></button>
+                        <button onclick="deleteUser(${user.id})" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i></button>
+                    </td>
+                </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        function filterUsers() {
+            const query = document.getElementById("search-user-input").value.toLowerCase();
+            const chosenRole = document.getElementById("filter-user-role").value;
+
+            let filtered = systemUsers.filter(u => {
+                const searchMatch = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+                const roleMatch = (chosenRole === "all" || u.role === chosenRole);
+                return searchMatch && roleMatch;
+            });
+
+            // Handle dual-directional alphabetic configuration logic
+            filtered.sort((a, b) => {
+                if(currentSortMode === "A-Z") return a.name.localeCompare(b.name);
+                return b.name.localeCompare(a.name);
+            });
+
+            renderUserTable(filtered);
+        }
+
+        function toggleSortDirection() {
+            if(currentSortMode === "A-Z") {
+                currentSortMode = "Z-A";
+                document.getElementById("sort-direction-indicator").innerText = "Z-A";
+            } else {
+                currentSortMode = "A-Z";
+                document.getElementById("sort-direction-indicator").innerText = "A-Z";
+            }
+            filterUsers();
+        }
+
+        function editUser(id) {
+            const u = systemUsers.find(user => user.id === id);
+            if(!u) return;
+
+            document.getElementById("user-modal-title").innerHTML = `<i data-lucide="edit-3" class="text-indigo-400"></i> Modify Staff Account`;
+            document.getElementById("edit-user-id").value = id;
+            document.getElementById("u-name").value = u.name;
+            document.getElementById("u-email").value = u.email;
+            document.getElementById("u-role").value = u.role;
+
+            rawUserPhotoBase64 = u.photo;
+            if(u.photo) {
+                document.getElementById("user-image-preview").innerHTML = `<img src="${u.photo}" class="w-full h-full object-cover">`;
+            } else {
+                document.getElementById("user-image-preview").innerHTML = `<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>`;
+            }
+            lucide.createIcons();
+            document.getElementById("add-user-modal").classList.remove("hidden");
+        }
+
+        function deleteUser(id) {
+            if(confirm("Are you sure you want to revoke system privileges and permanently drop this user account?")) {
+                systemUsers = systemUsers.filter(u => u.id !== id);
+                filterUsers();
+            }
+        }
+
+        function handleUserFormSubmit(e) {
+            e.preventDefault();
+            const idValue = document.getElementById("edit-user-id").value;
+
+            if(idValue) {
+                const staffObj = systemUsers.find(u => u.id == idValue);
+                if(staffObj) {
+                    staffObj.name = document.getElementById("u-name").value;
+                    staffObj.email = document.getElementById("u-email").value;
+                    staffObj.role = document.getElementById("u-role").value;
+                    staffObj.photo = rawUserPhotoBase64;
+                }
+            } else {
+                systemUsers.unshift({
+                    id: Date.now(),
+                    name: document.getElementById("u-name").value,
+                    email: document.getElementById("u-email").value,
+                    role: document.getElementById("u-role").value,
+                    photo: rawUserPhotoBase64
+                });
+            }
+            filterUsers();
+            closeUserModal();
+            e.target.reset();
+        }
+
+        // Shared dynamic layout framework injector script cloning top bar and side panels
         fetch('index.html').then(res => res.text()).then(html => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const sidebar = doc.querySelector('aside').innerHTML;
+            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
             const container = document.getElementById('sidebar-container');
             container.className = doc.querySelector('aside').className;
-            container.innerHTML = sidebar;
-            // Highlight active link
-            const oldActive = container.querySelector('a[href="index.html"]');
-            if(oldActive) oldActive.className = oldActive.className.replace('text-white bg-indigo-600', 'text-slate-400 hover:bg-slate-800/60 hover:text-white');
-            const target = container.querySelector('a[href="users.html"]');
-            if(target) target.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            container.id = "sidebar-menu";
+            container.innerHTML = doc.querySelector('aside').innerHTML;
+            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+            container.querySelector('a[href="users.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
             lucide.createIcons();
         });
     </script>
