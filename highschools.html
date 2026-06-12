@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Glorious Church - High Schools</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+
+    <aside id="sidebar-container"></aside>
+
+    <div class="flex-1 h-screen flex flex-col overflow-hidden">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+            <h2 class="text-base font-bold text-white tracking-wide">High Schools Allocation Roster</h2>
+            <button onclick="toggleModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow"><i data-lucide="plus"></i> Add High School</button>
+        </header>
+
+        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto">
+            <div id="schools-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center font-bold text-lg border border-indigo-500/20 shrink-0">CH</div>
+                    <div><h4 class="font-bold text-white text-sm">Cape Town High School</h4><p class="text-slate-400 text-[11px] mt-0.5">96 Hatfield St, Gardens, Cape Town</p></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-lg flex items-center justify-center font-bold text-lg border border-emerald-500/20 shrink-0">BH</div>
+                    <div><h4 class="font-bold text-white text-sm">Belhar High School</h4><p class="text-slate-400 text-[11px] mt-0.5">Proton St, Belhar, Cape Town</p></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="add-school-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm p-4 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-2"><h3 class="font-bold text-white text-sm">Add High School Node</h3><button onclick="toggleModal(false)" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <form onsubmit="handleNewSchool(event)" class="space-y-3">
+                <div><label class="block text-slate-400 mb-1">School Name</label><input type="text" id="s-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500"></div>
+                <div><label class="block text-slate-400 mb-1">Physical Address Location</label><input type="text" id="s-address" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500"></div>
+                <div><label class="block text-slate-400 mb-1">Upload Photo Icon/Logo Asset</label><input type="file" accept="image/*" class="w-full text-slate-400 file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-[11px] file:bg-slate-700 file:text-slate-200 hover:file:bg-slate-600"></div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700"><button type="button" onclick="toggleModal(false)" class="bg-slate-700 px-3 py-1.5 rounded-lg cursor-pointer">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg cursor-pointer">Save School</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Shared state synchronization simulation using local storage
+        let schools = JSON.parse(localStorage.getItem('church-highschools')) || [
+            { name: "Cape Town High School", address: "96 Hatfield St, Gardens, Cape Town" },
+            { name: "Belhar High School", address: "Proton St, Belhar, Cape Town" }
+        ];
+        localStorage.setItem('church-highschools', JSON.stringify(schools));
+
+        document.addEventListener("DOMContentLoaded", () => { refreshGrid(); });
+
+        function toggleModal(show) { document.getElementById("add-school-modal").classList.toggle("hidden", !show); }
+
+        function handleNewSchool(e) {
+            e.preventDefault();
+            const name = document.getElementById("s-name").value;
+            const address = document.getElementById("s-address").value;
+            schools.push({ name, address });
+            localStorage.setItem('church-highschools', JSON.stringify(schools));
+            refreshGrid(); toggleModal(false); e.target.reset();
+        }
+
+        function refreshGrid() {
+            const grid = document.getElementById("schools-grid");
+            grid.innerHTML = "";
+            schools.forEach(s => {
+                const init = s.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                grid.innerHTML += `
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center font-bold text-sm border border-indigo-500/20 shrink-0">${init}</div>
+                    <div><h4 class="font-bold text-white text-sm">${s.name}</h4><p class="text-slate-400 text-[11px] mt-0.5">${s.address}</p></div>
+                </div>`;
+            });
+        }
+
+        fetch('index.html').then(res => res.text()).then(html => {
+            const container = document.getElementById('sidebar-container');
+            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
+            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+            container.querySelector('a[href="highschools.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

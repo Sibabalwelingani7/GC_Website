@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Glorious Church - Members Map</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+
+    <aside id="sidebar-container"></aside>
+
+    <div class="flex-1 h-screen flex flex-col overflow-hidden">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+            <h2 class="text-base font-bold text-white tracking-wide">Congregation Density Location Frame</h2>
+            <div class="text-[11px] text-slate-400">Members Map</div>
+        </header>
+
+        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto">
+            <div class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow h-[520px]">
+                <div id="map" class="h-full w-full bg-slate-950"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const memberCoordinates = [
+            { name: "Thabo Ndlovu", area: "Gugulethu Cluster", lat: -33.987, lng: 18.551 },
+            { name: "Sarah Jenkins", area: "Rondebosch Group", lat: -33.965, lng: 18.472 },
+            { name: "Lwazi Sithole", area: "Belhar Cell Node", lat: -33.931, lng: 18.629 }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const map = L.map('map', { zoomControl: false }).setView([-33.958, 18.53], 11);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            memberCoordinates.forEach(m => {
+                L.marker([m.lat, m.lng]).addTo(map).bindPopup(`<div class="text-slate-900 text-xs"><b>${m.name}</b><br>${m.area} Home Resident Pin</div>`);
+            });
+        });
+
+        fetch('index.html').then(res => res.text()).then(html => {
+            const container = document.getElementById('sidebar-container');
+            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
+            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+            container.querySelector('a[href="members-map.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

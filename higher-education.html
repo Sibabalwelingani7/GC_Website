@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Glorious Church - Higher Education</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+
+    <aside id="sidebar-container"></aside>
+
+    <div class="flex-1 h-screen flex flex-col overflow-hidden">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+            <h2 class="text-base font-bold text-white tracking-wide">Universities & Colleges Database</h2>
+            <button onclick="toggleModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow"><i data-lucide="plus"></i> Add Campus Node</button>
+        </header>
+
+        <main class="p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto">
+            <div id="campuses-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                </div>
+        </main>
+    </div>
+
+    <div id="add-campus-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-sm p-4 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-2"><h3 class="font-bold text-white text-sm">Add Higher Ed Institute</h3><button onclick="toggleModal(false)" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <form onsubmit="handleNewCampus(event)" class="space-y-3">
+                <div><label class="block text-slate-400 mb-1">Campus Name</label><input type="text" id="c-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none"></div>
+                <div><label class="block text-slate-400 mb-1">Classification Category</label><select id="c-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="University">University</option><option value="College">College</option></select></div>
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-700"><button type="button" onclick="toggleModal(false)" class="bg-slate-700 px-3 py-1.5 rounded-lg">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg">Save Campus</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let campuses = JSON.parse(localStorage.getItem('church-campuses')) || [
+            { name: "University of Cape Town (UCT)", type: "University" },
+            { name: "Cape Peninsula University of Technology (CPUT)", type: "University" },
+            { name: "False Bay TVET College", type: "College" }
+        ];
+        localStorage.setItem('church-campuses', JSON.stringify(campuses));
+
+        document.addEventListener("DOMContentLoaded", () => { refreshGrid(); });
+        function toggleModal(show) { document.getElementById("add-campus-modal").classList.toggle("hidden", !show); }
+
+        function handleNewCampus(e) {
+            e.preventDefault();
+            campuses.push({ name: document.getElementById("c-name").value, type: document.getElementById("c-type").value });
+            localStorage.setItem('church-campuses', JSON.stringify(campuses));
+            refreshGrid(); toggleModal(false); e.target.reset();
+        }
+
+        function refreshGrid() {
+            const grid = document.getElementById("campuses-grid"); grid.innerHTML = "";
+            campuses.forEach(c => {
+                const color = c.type === 'University' ? 'bg-violet-500/10 text-violet-400 border-violet-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                grid.innerHTML += `
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center gap-3">
+                    <div class="w-10 h-10 ${color} rounded-lg flex items-center justify-center font-bold text-lg border shrink-0"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                    <div><h4 class="font-bold text-white text-sm">${c.name}</h4><p class="text-slate-500 text-[10px] uppercase tracking-wide font-semibold mt-0.5">${c.type}</p></div>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        fetch('index.html').then(res => res.text()).then(html => {
+            const container = document.getElementById('sidebar-container');
+            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
+            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+            container.querySelector('a[href="higher-education.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
