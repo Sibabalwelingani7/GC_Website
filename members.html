@@ -7,20 +7,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex overflow-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
-        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <h2 class="text-base font-bold text-white tracking-wide">Youth Roster Core Directory</h2>
             <div class="text-[11px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded font-medium border border-indigo-500/20">Active Congregation</div>
         </header>
 
-        <main class="p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
+        <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
             <section class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
                 <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex flex-col xl:flex-row gap-3 justify-between items-center">
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-between w-full xl:w-auto gap-4">
                         <span class="text-xs font-bold text-slate-300 uppercase tracking-wider"> Roster Control</span>
                         <button onclick="toggleSort()" class="bg-slate-900 text-[11px] text-slate-300 px-2.5 py-1.5 border border-slate-700 rounded-lg hover:text-white flex items-center gap-1 cursor-pointer">
                             <i data-lucide="arrow-up-z-a" class="w-3.5 h-3.5"></i> Sort A-Z (<span id="sort-indicator">Asc</span>)
@@ -38,7 +39,7 @@
                         </select>
 
                         <button onclick="toggleModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow">
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add New Member
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add Member
                         </button>
                     </div>
                 </div>
@@ -78,10 +79,7 @@
                     <div><label class="block text-slate-400 mb-0.5">Creative Arts Team</label><select id="m-dept" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="Dance Stars">Dance Stars</option><option value="Choir">The Choir / Worshipers</option><option value="Film Stars">Film Stars</option></select></div>
                     <div><label class="block text-slate-400 mb-0.5">Occupation Status</label><select id="m-occ" onchange="adjustConditionalInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="High School">High School Student</option><option value="University">University Student</option><option value="College">College Student</option><option value="Work">Employed / Workplace</option></select></div>
                 </div>
-                
-                <div id="conditional-fields" class="p-2.5 bg-slate-900/50 rounded-lg border border-slate-700/50 space-y-2">
-                    </div>
-
+                <div id="conditional-fields" class="p-2.5 bg-slate-900/50 rounded-lg border border-slate-700/50 space-y-2"></div>
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-700"><button type="button" onclick="toggleModal(false)" class="bg-slate-700 px-3 py-1.5 rounded-lg cursor-pointer">Cancel</button><button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium cursor-pointer">Confirm Member</button></div>
             </form>
         </div>
@@ -99,6 +97,10 @@
         document.addEventListener("DOMContentLoaded", () => { adjustConditionalInputs(); renderTable(initialMembers); });
         function toggleModal(show) { document.getElementById("add-member-modal").classList.toggle("hidden", !show); if(show) adjustConditionalInputs(); }
 
+        function toggleMobileMenu() {
+            document.getElementById("sidebar-menu").classList.toggle("-translate-x-full");
+        }
+
         function adjustConditionalInputs() {
             const occ = document.getElementById("m-occ").value;
             const container = document.getElementById("conditional-fields");
@@ -106,47 +108,19 @@
             const campuses = JSON.parse(localStorage.getItem('church-campuses')) || [];
 
             if(occ === "High School") {
-                container.innerHTML = `
-                    <label class="block text-slate-400 mb-1">Select Registered High School</label>
-                    <select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">
-                        ${highschools.map(s => `<option value="${s.name}">${s.name}</option>`).join('') || '<option value="None">No schools available. Add one first.</option>'}
-                    </select>`;
+                container.innerHTML = `<label class="block text-slate-400 mb-1">Select Registered High School</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">${highschools.map(s => `<option value="${s.name}">${s.name}</option>`).join('') || '<option value="None">No schools available.</option>'}</select>`;
             } else if(occ === "University" || occ === "College") {
                 const subset = campuses.filter(c => c.type === occ);
-                container.innerHTML = `
-                    <div class="space-y-2">
-                        <div>
-                            <label class="block text-slate-400 mb-1">Select Registered Institute</label>
-                            <select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">
-                                ${subset.map(c => `<option value="${c.name}">${c.name}</option>`).join('') || `<option value="None">No ${occ} structures defined.</option>`}
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-slate-400 mb-0.5">${occ === 'University' ? 'Degree/Major' : 'Enrolled Course'}</label><input type="text" id="m-sub1" placeholder="e.g. BCom Accounting" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
-                            <div><label class="block text-slate-400 mb-0.5">Current Study Year</label><input type="number" id="m-sub2" min="1" max="7" placeholder="1" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
-                        </div>
-                    </div>`;
+                container.innerHTML = `<div class="space-y-2"><div><label class="block text-slate-400 mb-1">Select Registered Institute</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">${subset.map(c => `<option value="${c.name}">${c.name}</option>`).join('') || `<option value="None">No structures defined.</option>`}</select></div><div class="grid grid-cols-2 gap-2"><div><label class="block text-slate-400 mb-0.5">${occ === 'University' ? 'Degree/Major' : 'Enrolled Course'}</label><input type="text" id="m-sub1" placeholder="e.g. BCom Accounting" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div><div><label class="block text-slate-400 mb-0.5">Current Study Year</label><input type="number" id="m-sub2" min="1" max="7" placeholder="1" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div></div></div>`;
             } else {
-                container.innerHTML = `<div><label class="block text-slate-400 mb-1">Designated Workplace / Company Name</label><input type="text" id="m-target" placeholder="e.g. Standard Bank Corporate" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>`;
+                container.innerHTML = `<div><label class="block text-slate-400 mb-1">Designated Workplace / Company Name</label><input type="text" id="m-target" placeholder="e.g. Standard Bank" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>`;
             }
         }
 
         function renderTable(data) {
             const body = document.getElementById("member-table-body"); body.innerHTML = "";
             data.forEach(m => {
-                body.innerHTML += `
-                <tr class="hover:bg-slate-700/20">
-                    <td class="py-2.5 px-4 font-semibold text-white">
-                        <div>${m.name}</div><div class="text-[9px] text-slate-500 font-normal">DOB: ${m.dob} | ${m.address}</div>
-                    </td>
-                    <td class="py-2.5 px-4 font-mono">${m.phone}</td>
-                    <td class="py-2.5 px-4 text-indigo-400 font-medium">${m.dept}</td>
-                    <td class="py-2.5 px-4"><span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-700/60 text-slate-300 font-medium">${m.occ}</span></td>
-                    <td class="py-2.5 px-4">
-                        <div class="font-medium text-slate-200">${m.target}</div>
-                        ${m.subData ? `<div class="text-[10px] text-slate-400 mt-0.5">${m.subData}</div>` : ''}
-                    </td>
-                </tr>`;
+                body.innerHTML += `<tr class="hover:bg-slate-700/20"><td class="py-2.5 px-4 font-semibold text-white"><div>${m.name}</div><div class="text-[9px] text-slate-500 font-normal">DOB: ${m.dob} | ${m.address}</div></td><td class="py-2.5 px-4 font-mono">${m.phone}</td><td class="py-2.5 px-4 text-indigo-400 font-medium">${m.dept}</td><td class="py-2.5 px-4"><span class="bg-slate-900 px-2 py-0.5 rounded border border-slate-700/60 text-slate-300 font-medium">${m.occ}</span></td><td class="py-2.5 px-4"><div class="font-medium text-slate-200">${m.target}</div>${m.subData ? `<div class="text-[10px] text-slate-400 mt-0.5">${m.subData}</div>` : ''}</td></tr>`;
             });
         }
 
@@ -154,41 +128,35 @@
             const query = document.getElementById("search-input").value.toLowerCase();
             const dept = document.getElementById("filter-dept").value;
             let filtered = initialMembers.filter(m => (m.name.toLowerCase().includes(query) || m.target.toLowerCase().includes(query)) && (dept === "all" || m.dept === dept));
-            
             filtered.sort((a,b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
             renderTable(filtered);
         }
 
-        function toggleSort() {
-            sortAsc = !sortAsc;
-            document.getElementById("sort-indicator").innerText = sortAsc ? "Asc" : "Desc";
-            filterMembers();
-        }
+        function toggleSort() { sortAsc = !sortAsc; document.getElementById("sort-indicator").innerText = sortAsc ? "Asc" : "Desc"; filterMembers(); }
 
         function handleFormSubmit(e) {
             e.preventDefault();
             const occ = document.getElementById("m-occ").value;
             let subData = "";
-            if(occ === "University" || occ === "College") {
-                subData = `${document.getElementById("m-sub1").value} - Year ${document.getElementById("m-sub2").value}`;
-            }
-            initialMembers.unshift({
-                name: document.getElementById("m-name").value,
-                phone: document.getElementById("m-phone").value,
-                address: document.getElementById("m-address").value,
-                dob: document.getElementById("m-dob").value,
-                dept: document.getElementById("m-dept").value,
-                occ: occ,
-                target: document.getElementById("m-target").value,
-                subData: subData
-            });
+            if(occ === "University" || occ === "College") subData = `${document.getElementById("m-sub1").value} - Year ${document.getElementById("m-sub2").value}`;
+            initialMembers.unshift({ name: document.getElementById("m-name").value, phone: document.getElementById("m-phone").value, address: document.getElementById("m-address").value, dob: document.getElementById("m-dob").value, dept: document.getElementById("m-dept").value, occ: occ, target: document.getElementById("m-target").value, subData: subData });
             filterMembers(); toggleModal(false); e.target.reset();
         }
 
+        // Updated shared layout injector engine supporting hamburger states
         fetch('index.html').then(res => res.text()).then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Build top mobile wrapper bar
+            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
+            
+            // Build structural dynamic sidebar
             const container = document.getElementById('sidebar-container');
-            container.className = "w-64 bg-slate-950 border-r border-slate-800 h-screen sticky top-0 left-0 z-40 flex flex-col justify-between shrink-0";
-            container.innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('aside').innerHTML;
+            container.className = doc.querySelector('aside').className;
+            container.id = "sidebar-menu";
+            container.innerHTML = doc.querySelector('aside').innerHTML;
+            
             container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
             container.querySelector('a[href="members.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
             lucide.createIcons();
