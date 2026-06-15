@@ -16,7 +16,7 @@
     <div id="mobile-top-bar" class="md:hidden"></div>
     <aside id="sidebar-container"></aside>
 
-    <div class="flex-1 h-screen flex flex-col overflow-hidden"> 
+    <div class="flex-1 h-screen flex flex-col overflow-hidden">
         <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
                 <h2 class="text-base font-bold text-white tracking-wide">Youth Roster Core Directory</h2>
@@ -66,12 +66,13 @@
                             <option value="Dance Stars">Dance Stars</option>
                             <option value="Choir">The Choir / Worshipers</option>
                             <option value="Film Stars">Film Stars</option>
+                            <option value="Film Stars">None</option>
                         </select>
 
                         <select id="filter-attendance" onchange="filterMembers()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none cursor-pointer">
                             <option value="all">All Statuses</option>
-                            <option value="Active">Active Only</option>
-                            <option value="Inactive">Inactive Only</option>
+                            <option value="Present">Present Only</option>
+                            <option value="Absent">Absent Only</option>
                         </select>
 
                         <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow">
@@ -108,7 +109,7 @@
                 <h3 id="modal-title" class="font-bold text-white text-sm flex items-center gap-1.5">
                     <i data-lucide="user-plus" class="text-indigo-400"></i> Register Youth Account
                 </h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x"></i></button>
+                <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-white cursor-pointer"><i data-lucide="x"></i></button>
             </div>
             
             <form id="add-member-form" onsubmit="handleFormSubmit(event)" class="space-y-3">
@@ -134,7 +135,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-slate-400 mb-0.5">Creative Arts Team</label><select id="m-dept" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="Dance Stars">Dance Stars</option><option value="Choir">The Choir / Worshipers</option><option value="Film Stars">Film Stars</option></select></div>
-                    <div><label class="block text-slate-400 mb-0.5">Occupation Status</label><select id="m-occ" onchange="adjustConditionalInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="High School">High School Student</option><option value="University">University Student</option><option value="College">College Student</option><option value="Work">Employed / Workplace</option></select></div>
+                    <div><label class="block text-slate-400 mb-0.5">Occupation Status</label><select id="m-occ" onchange="adjustConditionalInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none"><option value="Primary School">Primary School Student</option><option value="High School">High School Student</option><option value="University">University Student</option><option value="College">College Student</option><option value="Work">Employed / Workplace</option></select></div>
                 </div>
                 
                 <div id="conditional-fields" class="p-2.5 bg-slate-900/50 rounded-lg border border-slate-700/50 space-y-2"></div>
@@ -149,7 +150,7 @@
 
     <div id="view-member-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl p-5 space-y-4 relative text-xs">
-            <button onclick="closeViewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer bg-slate-900/40 p-1.5 rounded-lg border border-slate-700/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <button type="button" onclick="closeViewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer bg-slate-900/40 p-1.5 rounded-lg border border-slate-700/50"><i data-lucide="x" class="w-4 h-4"></i></button>
             
             <div class="text-center space-y-2 pb-3 border-b border-slate-700/60">
                 <div id="view-avatar-box" class="w-16 h-16 rounded-full mx-auto bg-slate-700 border-2 border-indigo-500 overflow-hidden flex items-center justify-center text-xl font-bold uppercase text-white shadow-md"></div>
@@ -191,7 +192,7 @@
             </div>
             
             <div class="pt-2 flex justify-center">
-                <button onclick="closeViewModal()" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-4 py-1.5 rounded-lg transition cursor-pointer">Close Profile</button>
+                <button type="button" onclick="closeViewModal()" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-4 py-1.5 rounded-lg transition cursor-pointer">Close Profile</button>
             </div>
         </div>
     </div>
@@ -212,11 +213,13 @@
         const membersCollection = db.collection('members');
 
         let initialMembers = [];
+        let allCampuses = []; // Shared runtime state containing dynamic items fetched from the cloud pages
         let sortAsc = true;
         let currentPhotoBase64 = "";
         let currentAuthenticatedUser = null;
 
         document.addEventListener("DOMContentLoaded", () => { 
+            listenToCampusData(); // Start tracking real-time nodes first
             adjustConditionalInputs(); 
             listenToAuthSession();
             listenToCloudData();
@@ -230,6 +233,21 @@
                 }
             });
         });
+
+        // Track live items generated on primaryschools.html, highschools.html, and highereducation.html via common collection
+        function listenToCampusData() {
+            db.collection('campuses').onSnapshot(snapshot => {
+                allCampuses = [];
+                snapshot.forEach(doc => {
+                    allCampuses.push(doc.data());
+                });
+                // Re-sync options seamlessly if form modal happens to be open during update
+                if (!document.getElementById("add-member-modal").classList.contains("hidden")) {
+                    const currentSelectedValue = document.getElementById("m-target")?.value || "";
+                    adjustConditionalInputs(currentSelectedValue);
+                }
+            });
+        }
 
         function listenToAuthSession() {
             auth.onAuthStateChanged(user => {
@@ -329,7 +347,6 @@
                     data.id = doc.id; 
                     initialMembers.push(data);
                 });
-                // Force an interface update immediately upon snapshot arrival
                 filterMembers();
             }, error => {
                 console.error("Cloud tracking broken: ", error);
@@ -347,7 +364,6 @@
             adjustConditionalInputs();
         }
 
-        document.getElementById("add-member-modal").classList.add("hidden");
         function closeModal() { document.getElementById("add-member-modal").classList.add("hidden"); }
 
         function openViewModal(id) {
@@ -390,15 +406,52 @@
 
         function toggleMobileMenu() { document.getElementById("sidebar-menu").classList.toggle("-translate-x-full"); }
 
-        function adjustConditionalInputs() {
+        // CONDITIONAL FORM STRUCTURE LOGIC MATCHING PRIMARY SCHOOL AND HIGH SCHOOL LAYOUTS DYNAMICALLY
+        function adjustConditionalInputs(preSelectedTarget = "") {
             const occ = document.getElementById("m-occ").value;
             const container = document.getElementById("conditional-fields");
-            if(occ === "High School") {
-                container.innerHTML = `<label class="block text-slate-400 mb-1">Select Registered High School</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300"><option value="Cape Town High School">Cape Town High School</option><option value="Belhar High School">Belhar High School</option></select>`;
-            } else if(occ === "University" || occ === "College") {
-                container.innerHTML = `<div class="space-y-2"><div><label class="block text-slate-400 mb-1">Select Registered Institute</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300"><option value="University of Cape Town (UCT)">University of Cape Town (UCT)</option><option value="CPUT">CPUT</option></select></div><div class="grid grid-cols-2 gap-2"><div><label class="block text-slate-400 mb-0.5">Course/Major</label><input type="text" id="m-sub1" placeholder="e.g. BSc IT" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div><div><label class="block text-slate-400 mb-0.5">Year</label><input type="number" id="m-sub2" min="1" max="7" placeholder="1" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div></div></div>`;
+            
+            // Map the occupation category names directly to the instType field names inside Firestore 'campuses' collection
+            let mappedType = "";
+            if (occ === "Primary School") mappedType = "primary";
+            if (occ === "High School") mappedType = "high";
+            if (occ === "University" || occ === "College") mappedType = "higher";
+
+            if (mappedType !== "") {
+                // Read live campuses matching selected strategy category 
+                const matches = allCampuses.filter(c => c.instType === mappedType);
+                
+                let optionsHtml = "";
+                if (matches.length === 0) {
+                    optionsHtml = `<option value="" disabled selected>No active campuses found in database registry</option>`;
+                } else {
+                    optionsHtml = matches.map(c => `
+                        <option value="${c.name}" ${c.name === preSelectedTarget ? 'selected' : ''}>${c.name}</option>
+                    `).join('');
+                }
+
+                if (occ === "Primary School") {
+                    container.innerHTML = `<label class="block text-slate-400 mb-1">Select Registered Primary School</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">${optionsHtml}</select>`;
+                } else if (occ === "High School") {
+                    container.innerHTML = `<label class="block text-slate-400 mb-1">Select Registered High School</label><select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">${optionsHtml}</select>`;
+                } else if (occ === "University" || occ === "College") {
+                    container.innerHTML = `
+                        <div class="space-y-2">
+                            <div>
+                                <label class="block text-slate-400 mb-1">Select Registered Institute</label>
+                                <select id="m-target" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300">${optionsHtml}</select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-slate-400 mb-0.5">Course/Major</label><input type="text" id="m-sub1" placeholder="e.g. BSc IT" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
+                                <div><label class="block text-slate-400 mb-0.5">Year</label><input type="number" id="m-sub2" min="1" max="7" placeholder="1" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>
+                            </div>
+                        </div>`;
+                }
             } else {
                 container.innerHTML = `<div><label class="block text-slate-400 mb-1">Designated Workplace / Company Name</label><input type="text" id="m-target" placeholder="e.g. Standard Bank" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"></div>`;
+                if (preSelectedTarget) {
+                    document.getElementById("m-target").value = preSelectedTarget;
+                }
             }
         }
 
@@ -414,8 +467,8 @@
             body.innerHTML = "";
             
             data.forEach((m) => {
-                const isActive = m.attendance === "Active";
-                const badgeClass = isActive ? "bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30" : "bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30";
+                const isPresent = m.attendance === "Present";
+                const badgeClass = isPresent ? "bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30" : "bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30";
 
                 const avatarImg = m.photo 
                     ? `<img src="${m.photo}" onclick="openViewModal('${m.id}')" class="w-7 h-7 rounded-full object-cover border border-slate-700 cursor-pointer hover:border-indigo-400 transition">`
@@ -435,21 +488,20 @@
                     
                     <td class="py-2 px-4">
                         <select onchange="updateAttendanceStatus('${m.id}', this)" class="${badgeClass} rounded px-1 py-0.5 text-[10px] focus:outline-none cursor-pointer">
-                            <option value="Active" ${isActive ? 'selected' : ''}>Active</option>
-                            <option value="Inactive" ${!isActive ? 'selected' : ''}>Inactive</option>
+                            <option value="Present" ${isPresent ? 'selected' : ''}>Present</option>
+                            <option value="Absent" ${!isPresent ? 'selected' : ''}>Absent</option>
                         </select>
                     </td>
 
                     <td class="py-2 px-4 text-right space-x-1">
-                        <button onclick="editMember('${m.id}')" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i></button>
-                        <button onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i></button>
+                        <button type="button" onclick="editMember('${m.id}')" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i></button>
+                        <button type="button" onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i></button>
                     </td>
                 </tr>`;
             });
             lucide.createIcons();
         }
 
-        // PATCHED FILTER ENGINE: Safe property verification shields against structural match breaks
         function filterMembers() {
             const query = (document.getElementById("search-input").value || "").toLowerCase();
             const dept = document.getElementById("filter-dept").value;
@@ -482,10 +534,9 @@
             document.getElementById("m-address").value = m.address || "";
             document.getElementById("m-dob").value = m.dob || "";
             document.getElementById("m-dept").value = m.dept || "Dance Stars";
-            document.getElementById("m-occ").value = m.occ || "High School";
+            document.getElementById("m-occ").value = m.occ || "Primary School";
             
-            adjustConditionalInputs();
-            document.getElementById("m-target").value = m.target || "";
+            adjustConditionalInputs(m.target || "");
             
             if((m.occ === "University" || m.occ === "College") && m.subData) {
                 const parts = m.subData.split(" - Year ");
@@ -536,7 +587,7 @@
                 .then(() => { closeModal(); e.target.reset(); })
                 .catch(err => alert("Error modifying data payload: " + err.message));
             } else {
-                dataPackage.attendance = "Active";
+                dataPackage.attendance = "Present";
                 membersCollection.add(dataPackage)
                 .then(() => { closeModal(); e.target.reset(); })
                 .catch(err => alert("Error appending data configuration payload: " + err.message));
