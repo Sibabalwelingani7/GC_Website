@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturday Transport Registry - Glorious Church Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
+
+    <!-- Mobile Top Bar Template Destination Container -->
+    <div id="mobile-top-bar" class="md:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between"></div>
+
+    <!-- Sidebar Layout Navigation Template Destination Container -->
+    <aside id="sidebar-container" class="hidden md:flex md:w-60 bg-slate-800 border-r border-slate-700 flex-col justify-between shrink-0 p-4 transition-all duration-300"></aside>
+
+    <!-- Main Workspace Frame -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+        
+        <!-- Header Banner Block Area -->
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <i data-lucide="bus" class="text-indigo-500 w-7 h-7"></i> Saturday Transport Registry
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Manage external logistics, taxi vendor contact information, and weekly service routes.</p>
+            </div>
+            <div>
+                <button type="button" id="add-driver-btn" onclick="openDriverModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition cursor-pointer hidden">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Taxi Driver
+                </button>
+            </div>
+        </header>
+
+        <!-- Search Filtering Utilities Bar Panel -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <div class="relative sm:col-span-2">
+                <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"></i>
+                <input type="text" id="search-driver-input" oninput="filterDrivers()" placeholder="Search drivers by name, phone number, or vehicle registration..." class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500 transition">
+            </div>
+            <div class="flex gap-2">
+                <select id="filter-status" onchange="filterDrivers()" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    <option value="all">All Operational Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+                <button type="button" onclick="toggleSortSequence()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0">
+                    <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
+                    <span id="sort-indicator">Asc</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Driver Matrix Operational Grid Table View -->
+        <section class="bg-slate-800 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-700/40 text-slate-300 font-semibold text-xs uppercase tracking-wider border-b border-slate-700">
+                            <th class="py-3 px-4 w-12">Avatar</th>
+                            <th class="py-3 px-4">Driver Details</th>
+                            <th class="py-3 px-4">Contact Info</th>
+                            <th class="py-3 px-4">Vehicle & Capacity</th>
+                            <th class="py-3 px-4">Assigned Route</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th id="table-actions-header" class="py-3 px-4 text-right w-24 hidden">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drivers-table-body" class="text-sm divide-y divide-slate-700/50 text-slate-300">
+                        <!-- Transformed Firestore list elements print here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Form Component Panel (Add / Edit Context Frame) -->
+    <div id="driver-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between bg-slate-700/20">
+                <h3 id="modal-title-context" class="text-base font-semibold text-white flex items-center gap-2">
+                    <!-- Text dynamic title content updates here -->
+                </h3>
+                <button type="button" onclick="closeDriverModal()" class="text-slate-400 hover:text-white transition cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="driver-submission-form" onsubmit="handleFormSubmission(event)" class="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+                <input type="hidden" id="edit-driver-id" value="">
+                
+                <!-- Profile Image Avatar Base64 Row Upload Layout Elements -->
+                <div class="flex items-center gap-4 bg-slate-900/40 p-3 rounded-lg border border-slate-700/40">
+                    <div id="driver-avatar-preview" class="w-14 h-14 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center overflow-hidden shrink-0">
+                        <i data-lucide="user" class="w-6 h-6 text-slate-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Driver Photograph</label>
+                        <input type="file" accept="image/*" onchange="convertPhotoToBase64(event)" class="block w-full text-xs text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600/20 file:text-indigo-400 hover:file:bg-indigo-600/30 file:transition file:cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Basic Meta String Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="d-name" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                        <input type="text" id="d-name" required placeholder="e.g., John Siyanda" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600 transition">
+                    </div>
+                    <div>
+                        <label for="d-phone" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                        <input type="tel" id="d-phone" required placeholder="e.g., +27 83 123 4567" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="d-vehicle" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Vehicle Details</label>
+                        <input type="text" id="d-vehicle" required placeholder="e.g., Toyota Quantum (CA 123-456)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600 transition">
+                    </div>
+                    <div>
+                        <label for="d-capacity" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Seating Capacity</label>
+                        <input type="number" id="d-capacity" required min="1" placeholder="e.g., 15" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="d-route" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Assigned Route Area</label>
+                    <input type="text" id="d-route" required placeholder="e.g., Khayelitsha / Mitchells Plain Circuit" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 placeholder-slate-600 transition">
+                </div>
+
+                <div>
+                    <label for="d-status" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Operational Registry Status</label>
+                    <select id="d-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 border-t border-slate-700 flex justify-end gap-2">
+                    <button type="button" onclick="closeDriverModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg font-medium text-sm transition cursor-pointer">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium text-sm shadow-md shadow-indigo-600/15 transition cursor-pointer">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Core App Firebase Application SDK Initialization Layer Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Operational Application Code Engine Script Logic Segment -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
+            authDomain: "glorious-church-app.firebaseapp.com",
+            projectId: "glorious-church-app",
+            storageBucket: "glorious-church-app.firebasestorage.app",
+            messagingSenderId: "962372698082",
+            appId: "1:962372698082:web:e8491be558c6421d1dc3bb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const transportCollection = db.collection('transport');
+
+        let driversList = [];
+        let sortAscendingOrder = true;
+        let currentUploadedImageBase64 = "";
+        let currentUserRole = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            listenToAuthSession();
+        });
+
+        function listenToAuthSession() {
+            buildSecuredNavigation();
+
+            auth.onAuthStateChanged(user => {
+                if (!user) {
+                    currentUserRole = "";
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                // Verify user inside your official staff directory
+                db.collection('staff').where("email", "==", user.email).get().then(snapshot => {
+                    if (snapshot.empty) {
+                        alert("Access Denied! Your email credentials are not recognized in our database system.");
+                        auth.signOut().then(() => { window.location.href = "login.html"; });
+                        return;
+                    }
+
+                    currentUserRole = snapshot.docs[0].data().role;
+                    
+                    // Re-run the navigation architecture logic using the parsed credentials
+                    buildSecuredNavigation();
+                    applyPrivilegedLayoutRules();
+                    listenToTransportDatabaseStream();
+
+                }).catch(err => {
+                    console.error("System structural authorization engine error:", err);
+                    window.location.href = "login.html";
+                });
+            });
+        }
+
+        function applyPrivilegedLayoutRules() {
+            const addDriverBtn = document.getElementById("add-driver-btn");
+            const actionsHeader = document.getElementById("table-actions-header");
+            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+
+            // Give management execution access to Admins and Pastors
+            if (normalizedRole === "admin" || normalizedRole === "pastor") {
+                if (addDriverBtn) addDriverBtn.classList.remove("hidden");
+                if (actionsHeader) actionsHeader.classList.remove("hidden");
+            } else {
+                if (addDriverBtn) addDriverBtn.classList.add("hidden");
+                if (actionsHeader) actionsHeader.classList.add("hidden");
+            }
+        }
+
+        function listenToTransportDatabaseStream() {
+            transportCollection.onSnapshot(snapshot => {
+                driversList = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    driversList.push(data);
+                });
+                filterDrivers();
+            }, error => {
+                console.error("Transport database pipeline failure:", error);
+            });
+        }
+
+        function openDriverModal() {
+            document.getElementById("modal-title-context").innerHTML = `<i data-lucide="plus-circle" class="text-indigo-400 w-5 h-5"></i> Enroll Saturday Service Driver`;
+            document.getElementById("edit-driver-id").value = "";
+            document.getElementById("driver-submission-form").reset();
+            currentUploadedImageBase64 = "";
+            document.getElementById("driver-avatar-preview").innerHTML = `<i data-lucide="user" class="w-6 h-6 text-slate-400"></i>`;
+            lucide.createIcons();
+            document.getElementById("driver-modal").classList.remove("hidden");
+        }
+
+        function closeDriverModal() {
+            document.getElementById("driver-modal").classList.add("hidden");
+        }
+
+        function convertPhotoToBase64(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUploadedImageBase64 = e.target.result;
+                    document.getElementById("driver-avatar-preview").innerHTML = `<img src="${currentUploadedImageBase64}" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderDriversTable(data) {
+            const body = document.getElementById("drivers-table-body");
+            if (!body) return;
+            body.innerHTML = "";
+
+            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+            const hideActions = (normalizedRole === "admin" || normalizedRole === "pastor") ? "" : "hidden";
+
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 font-medium">No drivers match your current search profile queries.</td></tr>`;
+                return;
+            }
+
+            data.forEach(d => {
+                const imgNode = d.photo
+                    ? `<img src="${d.photo}" class="w-8 h-8 rounded-lg object-cover border border-slate-700">`
+                    : `<div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-300 font-bold uppercase">${(d.name || "D").charAt(0)}</div>`;
+
+                const statusBadge = d.status === "Active"
+                    ? `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide">Active</span>`
+                    : `<span class="bg-slate-500/10 text-slate-400 border border-slate-700 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide">Inactive</span>`;
+
+                body.innerHTML += `
+                <tr class="hover:bg-slate-700/20 transition duration-150">
+                    <td class="py-3 px-4">${imgNode}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${d.name || "N/A"}</td>
+                    <td class="py-3 px-4 font-mono text-slate-400 text-xs">${d.phone || "N/A"}</td>
+                    <td class="py-3 px-4">
+                        <div class="text-white font-medium">${d.vehicle || "N/A"}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Capacity: ${d.capacity || "0"} seats</div>
+                    </td>
+                    <td class="py-3 px-4"><span class="text-indigo-300 font-medium text-xs bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10">${d.route || "Unassigned"}</span></td>
+                    <td class="py-3 px-4">${statusBadge}</td>
+                    <td class="py-3 px-4 text-right space-x-1 ${hideActions}">
+                        <button type="button" onclick="editDriverRecord('${d.id}')" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="edit-3" class="w-4 h-4 inline"></i></button>
+                        <button type="button" onclick="deleteDriverRecord('${d.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+                    </td>
+                </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        function filterDrivers() {
+            const searchVal = (document.getElementById("search-driver-input").value || "").toLowerCase();
+            const statusFilter = document.getElementById("filter-status").value;
+
+            let matches = driversList.filter(d => {
+                const nameStr = (d.name || "").toLowerCase();
+                const phoneStr = (d.phone || "").toLowerCase();
+                const vehicleStr = (d.vehicle || "").toLowerCase();
+
+                const evaluateSearch = nameStr.includes(searchVal) || phoneStr.includes(searchVal) || vehicleStr.includes(searchVal);
+                const evaluateStatus = (statusFilter === "all" || d.status === statusFilter);
+
+                return evaluateSearch && evaluateStatus;
+            });
+
+            matches.sort((a, b) => sortAscendingOrder 
+                ? (a.name || "").localeCompare(b.name || "") 
+                : (b.name || "").localeCompare(a.name || "")
+            );
+
+            renderDriversTable(matches);
+        }
+
+        function toggleSortSequence() {
+            sortAscendingOrder = !sortAscendingOrder;
+            document.getElementById("sort-indicator").innerText = sortAscendingOrder ? "Asc" : "Desc";
+            filterDrivers();
+        }
+
+        function editDriverRecord(id) {
+            const d = driversList.find(item => item.id === id);
+            if (!d) return;
+
+            document.getElementById("modal-title-context").innerHTML = `<i data-lucide="edit-3" class="text-indigo-400 w-5 h-5"></i> Modify Logistics Profile`;
+            document.getElementById("edit-driver-id").value = id;
+            document.getElementById("d-name").value = d.name || "";
+            document.getElementById("d-phone").value = d.phone || "";
+            document.getElementById("d-vehicle").value = d.vehicle || "";
+            document.getElementById("d-capacity").value = d.capacity || "";
+            document.getElementById("d-route").value = d.route || "";
+            document.getElementById("d-status").value = d.status || "Active";
+
+            currentUploadedImageBase64 = d.photo || "";
+            if (d.photo) {
+                document.getElementById("driver-avatar-preview").innerHTML = `<img src="${d.photo}" class="w-full h-full object-cover">`;
+            } else {
+                document.getElementById("driver-avatar-preview").innerHTML = `<i data-lucide="user" class="w-6 h-6 text-slate-400"></i>`;
+            }
+
+            lucide.createIcons();
+            document.getElementById("driver-modal").classList.remove("hidden");
+        }
+
+        function deleteDriverRecord(id) {
+            if (confirm("Are you certain you want to remove this driver profile from the Saturday transport logs?")) {
+                transportCollection.doc(id).delete()
+                    .catch(err => alert("Operational data write failure: " + err.message));
+            }
+        }
+
+        function handleFormSubmission(e) {
+            e.preventDefault();
+            const idValue = document.getElementById("edit-driver-id").value;
+
+            const structuredPayload = {
+                name: document.getElementById("d-name").value,
+                phone: document.getElementById("d-phone").value,
+                vehicle: document.getElementById("d-vehicle").value,
+                capacity: parseInt(document.getElementById("d-capacity").value) || 0,
+                route: document.getElementById("d-route").value,
+                status: document.getElementById("d-status").value,
+                photo: currentUploadedImageBase64
+            };
+
+            if (idValue) {
+                transportCollection.doc(idValue).update(structuredPayload)
+                    .then(() => { closeDriverModal(); e.target.reset(); })
+                    .catch(err => alert("Data synchronization block error: " + err.message));
+            } else {
+                transportCollection.add(structuredPayload)
+                    .then(() => { closeDriverModal(); e.target.reset(); })
+                    .catch(err => alert("Data registration error: " + err.message));
+            }
+        }
+
+        function buildSecuredNavigation() {
+            fetch('index.html')
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const mobileSource = doc.querySelector('.md\\:hidden');
+                    const sidebarSource = doc.querySelector('aside');
+
+                    if (!mobileSource || !sidebarSource) return;
+
+                    const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+
+                    // Security-Level Gate Check
+                    if (normalizedRole === "creative arts leader") {
+                        const restrictedPages = ['staff.html', 'offering.html']; 
+
+                        restrictedPages.forEach(page => {
+                            const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
+                            const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
+                            
+                            if (mobileLink) mobileLink.remove();
+                            if (sidebarLink) sidebarLink.remove();
+                        });
+                    }
+
+                    // Render carefully to screen elements
+                    const mobileTopBar = document.getElementById('mobile-top-bar');
+                    const container = document.getElementById('sidebar-container');
+
+                    if (mobileTopBar) mobileTopBar.innerHTML = mobileSource.innerHTML;
+                    
+                    if (container) {
+                        container.className = sidebarSource.className;
+                        container.id = "sidebar-menu";
+                        container.innerHTML = sidebarSource.innerHTML;
+                        
+                        // Style elements to show the new page link highlighted when active
+                        container.querySelectorAll('a').forEach(link => {
+                            if (link.getAttribute('href') === 'transport.html') {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+                            } else {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+                            }
+                        });
+                    }
+                    
+                    lucide.createIcons();
+                })
+                .catch(err => console.error("Error setting page scaffolding templates: ", err));
+        }
+    </script>
+</body>
+</html>

@@ -62,7 +62,25 @@
         const auth = firebase.auth();
 
         // Initialize Lucide icons on view load
-        lucide.createIcons();
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            checkActiveSession();
+        });
+
+        // Forward legitimate users into the application if an unexpired token exists
+        function checkActiveSession() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // Quick background check against the registry to ensure they haven't been deleted
+                    db.collection('staff').where("email", "==", user.email).get()
+                        .then(snapshot => {
+                            if (!snapshot.empty) {
+                                window.location.href = "index.html";
+                            }
+                        }).catch(err => console.error("Session evaluation failure:", err));
+                }
+            });
+        }
 
         function handleLogin(e) {
             e.preventDefault();
@@ -74,9 +92,11 @@
             const submitBtn = document.getElementById("submit-btn");
 
             // Clear previous errors and set button to loading state
-            errorAlert.classList.add("hidden");
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Verifying Identity...";
+            if (errorAlert) errorAlert.classList.add("hidden");
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Verifying Identity...";
+            }
 
             // Step 1: Check Firebase Auth to see if password matches the email
             auth.signInWithEmailAndPassword(email, password)
@@ -84,37 +104,43 @@
                     const user = userCredential.user;
 
                     // Step 2: Double check against your Firestore 'staff' collection 
-                    // to make sure this user is explicitly allowed on the dashboard.
                     return db.collection('staff').where("email", "==", user.email).get();
                 })
                 .then((snapshot) => {
                     if (snapshot.empty) {
-                        // If they are in Firebase Auth but NOT in your staff collection database, kick them out
-                        throw new Error("Access Denied. Your email is not registered in the staff database.");
+                        // Explicitly name custom error to filter it downstream in the catch engine
+                        const staffError = new Error("Access Denied. Your email is not registered in the staff database.");
+                        staffError.code = "custom/not-staff";
+                        throw staffError;
                     }
 
-                    // Logged in successfully and verified as staff member! Redirect to index/members
+                    // Logged in successfully and verified as staff member! Redirect to dashboard
                     window.location.href = "index.html";
                 })
                 .catch((error) => {
-                    // ERROR HANDLING: Catch bad passwords, unregistered emails, or network errors
                     console.error("Authentication Failure: ", error);
                     
                     // Show user-friendly error messages on the screen
-                    errorAlert.classList.remove("hidden");
-                    if (error.code === "auth/invalid-credential" || error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-                        errorMessage.innerText = "Invalid email address or password configuration.";
-                    } else {
-                        errorMessage.innerText = error.message;
+                    if (errorAlert && errorMessage) {
+                        errorAlert.classList.remove("hidden");
+                        if (error.code === "auth/invalid-credential" || error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+                            errorMessage.innerText = "Invalid email address or password configuration.";
+                        } else {
+                            errorMessage.innerText = error.message;
+                        }
                     }
 
                     // Reset button back to normal state
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<i data-lucide="log-in" class="w-3.5 h-3.5"></i> Sign In to Portal`;
-                    lucide.createIcons();
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<i data-lucide="log-in" class="w-3.5 h-3.5"></i> Sign In to Portal`;
+                        lucide.createIcons();
+                    }
                     
-                    // Force complete signout out of Firebase system to clear any partial sessions
-                    auth.signOut();
+                    // CRITICAL FIX: Explicitly await complete cache purging before completing block execution
+                    auth.signOut().then(() => {
+                        console.log("Stale or unauthorized local authentication state cleanly revoked.");
+                    });
                 });
         }
     </script>

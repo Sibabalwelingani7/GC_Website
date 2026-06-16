@@ -95,7 +95,6 @@
         </div>
     </div>
 
-    <!-- MAIN OFFERINGS ENGINE LOGIC SCRIPT -->
     <script>
         // Data Registry stored locally via browser space to preserve inputs across active tasks
         let offeringsLogs = JSON.parse(localStorage.getItem('church-offerings')) || [
@@ -104,9 +103,44 @@
             { id: 3, date: "2026-05-24", amount: 1250.00 }
         ];
 
+        let currentUserRole = ""; // Tracks administrative authorization clearances globally
+
         document.addEventListener("DOMContentLoaded", () => {
             refreshOfferingsDisplay();
+            listenToAuthSession(); // Run secure role checks on DOM load
         });
+
+        // Verifies credentials via cloud database to assign proper user view states
+        function listenToAuthSession() {
+            // Build the sidebar layout instantly on load so it never disappears or flickers
+            buildSecuredNavigation();
+
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    firebase.firestore().collection('staff').where("email", "==", user.email).get().then(staffSnapshot => {
+                        if (staffSnapshot.empty) {
+                            alert("Access Denied! Your email is not registered in the staff database registry.");
+                            firebase.auth().signOut().then(() => { window.location.href = "login.html"; });
+                            return;
+                        }
+
+                        // Extract administrative role context safely
+                        let staffData = staffSnapshot.docs[0].data();
+                        currentUserRole = staffData.role;
+
+                        // Re-run the navigation builder now that we know the role to filter restricted pages safely
+                        buildSecuredNavigation();
+                    }).catch(err => {
+                        console.error("Authorization snapshot look up failure:", err);
+                        window.location.href = "login.html";
+                    });
+                } else {
+                    currentUserRole = "";
+                    // Route Guard: Send unauthenticated actions away to login page instantly
+                    window.location.href = "login.html";
+                }
+            });
+        }
 
         function openOfferingsModal() {
             // Auto-sets date input field value to today's active calendar date tracking
@@ -162,6 +196,7 @@
 
         function refreshOfferingsDisplay() {
             const body = document.getElementById("offerings-table-body");
+            if (!body) return;
             body.innerHTML = "";
 
             // Sort dates from newest to oldest automatically
@@ -195,33 +230,58 @@
             // Calculate active rolling metric averages 
             const dynamicAverage = offeringsLogs.length > 0 ? (cumulativeTotal / offeringsLogs.length) : 0;
             
-            document.getElementById("stat-total-amount").innerText = formatZAR(cumulativeTotal);
-            document.getElementById("stat-avg-amount").innerText = formatZAR(dynamicAverage);
-            document.getElementById("record-count-badge").innerText = `${offeringsLogs.length} logs saved`;
+            const totalEl = document.getElementById("stat-total-amount");
+            const avgEl = document.getElementById("stat-avg-amount");
+            const badgeEl = document.getElementById("record-count-badge");
+
+            if(totalEl) totalEl.innerText = formatZAR(cumulativeTotal);
+            if(avgEl) avgEl.innerText = formatZAR(dynamicAverage);
+            if(badgeEl) badgeEl.innerText = `${offeringsLogs.length} logs saved`;
 
             lucide.createIcons();
         }
 
         // Shared universal dynamic template sidebar frame logic injection
-        fetch('index.html').then(res => res.text()).then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
-            const container = document.getElementById('sidebar-container');
-            container.className = doc.querySelector('aside').className;
-            container.id = "sidebar-menu";
-            container.innerHTML = doc.querySelector('aside').innerHTML;
-            
-            // Turn off active highlighting classes from dashboard links smoothly
-            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-            
-            // Highlights offerings tracking link if it exists on sidebar navigation tracks
-            const offeringsLink = container.querySelector('a[href="offerings.html"]');
-            if(offeringsLink) {
-                offeringsLink.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-            }
-            lucide.createIcons();
-        });
+        function buildSecuredNavigation() {
+            fetch('index.html').then(res => res.text()).then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const mobileSource = doc.querySelector('.md\\:hidden');
+                const sidebarSource = doc.querySelector('aside');
+
+                // Strip navigation segments if the current credentials flag matches Creative Arts Leader
+                if (currentUserRole === "Creative Arts Leader") {
+                    const restrictedPages = ['users.html', 'offerings.html']; 
+
+                    restrictedPages.forEach(page => {
+                        const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
+                        const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
+                        
+                        if (mobileLink) mobileLink.remove();
+                        if (sidebarLink) sidebarLink.remove();
+                    });
+                }
+
+                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
+                
+                const container = document.getElementById('sidebar-container');
+                container.className = sidebarSource.className;
+                container.id = "sidebar-menu";
+                container.innerHTML = sidebarSource.innerHTML;
+                
+                // Turn off active highlighting classes from dashboard links smoothly
+                container.querySelectorAll('a').forEach(link => {
+                    if (link.getAttribute('href') === 'offerings.html') {
+                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+                    } else {
+                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+                    }
+                });
+                
+                lucide.createIcons();
+            });
+        }
     </script>
 </body>
 </html>

@@ -145,6 +145,7 @@
     </div>
 
     <script>
+        // Your exact app Firebase Configuration keys
         const firebaseConfig = {
             apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
             authDomain: "glorious-church-app.firebaseapp.com",
@@ -165,8 +166,10 @@
         let currentUserRole = ""; 
 
         document.addEventListener("DOMContentLoaded", () => { 
+            // Kickstart security and authentication lifecycle instantly
             listenToAuthSession();
 
+            // Clear profile flyout menus if clicked outside element frame
             document.addEventListener('click', function(e) {
                 const dropMenu = document.getElementById("profile-dropdown-menu");
                 const profileBtn = document.getElementById("profile-menu-button");
@@ -177,9 +180,15 @@
             });
         });
 
+        // Verifies credentials via cloud database to assign proper user view states
         function listenToAuthSession() {
+            // First pass: Build navigation with unknown role flags so the layout prints on-screen instantly
+            buildSecuredNavigation();
+
             auth.onAuthStateChanged(user => {
                 if (!user) {
+                    currentUserRole = "";
+                    // Route Guard: Send unauthenticated actions away to login page instantly
                     window.location.href = "login.html";
                     return;
                 }
@@ -195,7 +204,10 @@
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
 
-                    // Hide administrative panels strictly from Creative Arts Leaders
+                    // Second pass: Re-run navigation builder to strip restricted sections now that role is confirmed
+                    buildSecuredNavigation();
+
+                    // Hide administrative buttons/columns from non-privileged views
                     applyRoleVisibilityRules();
 
                     const emailContainer = document.getElementById("dropdown-user-email");
@@ -206,10 +218,11 @@
                         if (userData.photo) {
                             avatarContainer.innerHTML = `<img src="${userData.photo}" class="w-full h-full object-cover">`;
                         } else {
-                            avatarContainer.innerHTML = userData.name.charAt(0).toUpperCase();
+                            avatarContainer.innerHTML = (userData.name || "S").charAt(0).toUpperCase();
                         }
                     }
 
+                    // Synchronize dataset real-time table listeners
                     listenToStaffCloudData();
 
                 }).catch(err => {
@@ -222,8 +235,9 @@
         function applyRoleVisibilityRules() {
             const addUserBtn = document.getElementById("add-user-btn");
             const actionsHeader = document.getElementById("table-actions-header");
+            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
 
-            if (currentUserRole === "Admin" || currentUserRole === "Pastor") {
+            if (normalizedRole === "admin" || normalizedRole === "pastor") {
                 if (addUserBtn) addUserBtn.classList.remove("hidden");
                 if (actionsHeader) actionsHeader.classList.remove("hidden");
             } else {
@@ -292,8 +306,12 @@
 
         function renderTable(data) {
             const body = document.getElementById("staff-table-body"); 
+            if (!body) return;
             body.innerHTML = "";
             
+            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+            const displayActions = (normalizedRole === "admin" || normalizedRole === "pastor") ? "" : "hidden";
+
             data.forEach((s) => {
                 const avatarImg = s.photo 
                     ? `<img src="${s.photo}" class="w-7 h-7 rounded-full object-cover border border-slate-700">`
@@ -302,8 +320,6 @@
                 let roleBadgeColor = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
                 if (s.role === "Admin") roleBadgeColor = "bg-rose-500/10 text-rose-400 border border-rose-500/20";
                 if (s.role === "Pastor") roleBadgeColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-
-                const displayActions = (currentUserRole === "Admin" || currentUserRole === "Pastor") ? "" : "hidden";
 
                 body.innerHTML += `
                 <tr class="hover:bg-slate-700/20">
@@ -386,12 +402,10 @@
             };
 
             if(idValue) {
-                // Updating document in Firestore collection
                 staffCollection.doc(idValue).update(dataPackage)
                 .then(() => { closeModal(); e.target.reset(); })
                 .catch(err => alert("Error updating registry: " + err.message));
             } else {
-                // Dual Authentication Flow syncs both systems automatically
                 const targetPass = document.getElementById("s-password").value;
                 
                 auth.createUserWithEmailAndPassword(targetEmail, targetPass)
@@ -407,24 +421,63 @@
             }
         }
 
-        fetch('index.html').then(res => res.text()).then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
-            const container = document.getElementById('sidebar-container');
-            container.className = doc.querySelector('aside').className;
-            container.id = "sidebar-menu";
-            container.innerHTML = doc.querySelector('aside').innerHTML;
-            
-            container.querySelectorAll('a').forEach(link => {
-                if(link.getAttribute('href') === 'staff.html') {
-                    link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                } else {
-                    link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                }
-            });
-            lucide.createIcons();
-        });
+        // PERFECTLY SYNCHRONIZED SECURED NAVIGATION BUILDER
+        function buildSecuredNavigation() {
+            fetch('index.html')
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const mobileSource = doc.querySelector('.md\\:hidden');
+                    const sidebarSource = doc.querySelector('aside');
+
+                    if (!mobileSource || !sidebarSource) {
+                        console.warn("Template elements missing inside index.html target fetch.");
+                        return;
+                    }
+
+                    // Lowercase and trim user roles to prevent database formatting discrepancies completely
+                    const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+
+                    // Security-Level Gate Check
+                    if (normalizedRole === "Creative Arts Leader") {
+                        const restrictedPages = ['users.html', 'offerings.html']; 
+
+                        restrictedPages.forEach(page => {
+                            const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
+                            const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
+                            
+                            if (mobileLink) mobileLink.remove();
+                            if (sidebarLink) sidebarLink.remove();
+                        });
+                    }
+
+                    // Mount elements securely to screen container nodes
+                    const mobileTopBar = document.getElementById('mobile-top-bar');
+                    const container = document.getElementById('sidebar-container');
+
+                    if (mobileTopBar) mobileTopBar.innerHTML = mobileSource.innerHTML;
+                    
+                    if (container) {
+                        container.className = sidebarSource.className;
+                        container.id = "sidebar-menu";
+                        container.innerHTML = sidebarSource.innerHTML;
+                        
+                        // Set active layout highlighters perfectly
+                        container.querySelectorAll('a').forEach(link => {
+                            if (link.getAttribute('href') === 'users.html') {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+                            } else {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+                            }
+                        });
+                    }
+                    
+                    lucide.createIcons();
+                })
+                .catch(err => console.error("Error running application layout building processes: ", err));
+        }
     </script>
 </body>
 </html>

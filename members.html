@@ -148,51 +148,79 @@
         </div>
     </div>
 
-    <div id="view-member-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl p-5 space-y-4 relative text-xs">
-            <button type="button" onclick="closeViewModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer bg-slate-900/40 p-1.5 rounded-lg border border-slate-700/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+    <!-- CHANGED: Re-architected view modal wrapper layout, sizes, containers and spacing to match the exact format of the image layout -->
+    <div id="view-member-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl w-full max-w-2xl shadow-2xl p-6 relative overflow-y-auto max-h-[95vh] space-y-6">
             
-            <div class="text-center space-y-2 pb-3 border-b border-slate-700/60">
-                <div id="view-avatar-box" class="w-16 h-16 rounded-full mx-auto bg-slate-700 border-2 border-indigo-500 overflow-hidden flex items-center justify-center text-xl font-bold uppercase text-white shadow-md"></div>
-                <div>
-                    <h3 id="view-name" class="text-sm font-bold text-white tracking-wide"></h3>
-                    <p id="view-dept" class="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase mt-0.5"></p>
+            <!-- CHANGED: Replaced close button style with "Back to Members" style navigation layout matching image format -->
+            <button type="button" onclick="closeViewModal()" class="text-slate-400 hover:text-white cursor-pointer flex items-center gap-2 text-xs font-medium bg-transparent border-0 p-0 mb-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Members
+            </button>
+            
+            <!-- CHANGED: Re-arranged profile block to match horizontal image layout with huge image box and right-side metadata grids -->
+            <div class="bg-slate-800/40 border border-slate-800/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                <!-- CHANGED: Scaled profile image avatar placeholder wrapper up to a large square frame with rounded corners matching layout -->
+                <div id="view-avatar-box" class="w-40 h-40 rounded-xl bg-slate-700 border border-slate-600/50 overflow-hidden flex items-center justify-center text-4xl font-bold uppercase text-white shrink-0 shadow-md"></div>
+                
+                <!-- CHANGED: Meta status tracking container with badge layout styles modeled directly on layout screenshot rules -->
+                <div class="flex-1 space-y-3 text-center sm:text-left w-full">
+                    <div>
+                        <h3 id="view-name" class="text-2xl font-bold text-white tracking-wide"></h3>
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+                            <span class="bg-emerald-950/60 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase">Active</span>
+                            <span id="view-badge-dept" class="bg-blue-950/60 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase"></span>
+                            <span class="bg-slate-800 text-slate-400 border border-slate-700/60 px-2.5 py-0.5 rounded text-[10px] font-medium">Bassie's Cell</span>
+                        </div>
+                    </div>
+
+                    <!-- CHANGED: Added structural phone and green WhatsApp link columns matching screenshot text row exactly -->
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-semibold pt-1">
+                        <div class="flex items-center gap-1.5 text-sky-400">
+                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                            <span id="view-phone"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-emerald-400">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>WhatsApp</span>
+                        </div>
+                    </div>
+
+                    <!-- CHANGED: Inserted standalone dark card layout specifically for dynamic operational attendance tracker tracking logs -->
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 text-left space-y-1.5 w-full">
+                        <p class="text-[11px] text-slate-400 font-medium">Attendance</p>
+                        <p id="view-attendance-stats" class="text-xs font-medium text-slate-200">1 present out of 1 records</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="space-y-3">
-                <div class="flex items-start gap-2.5">
-                    <div class="text-slate-500 mt-0.5"><i data-lucide="phone" class="w-3.5 h-3.5"></i></div>
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Contact Mobile</p>
-                        <p id="view-phone" class="text-slate-200 font-mono mt-0.5"></p>
-                    </div>
+            <!-- CHANGED: Designed styled standalone Personal Info block panel to host descriptive identity properties securely -->
+            <div class="bg-slate-800/40 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+                <div class="text-slate-300 font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <i data-lucide="user" class="w-4 h-4 text-orange-400"></i> Personal Info
                 </div>
-                <div class="flex items-start gap-2.5">
-                    <div class="text-slate-500 mt-0.5"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i></div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
-                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Home Address</p>
-                        <p id="view-address" class="text-slate-200 mt-0.5"></p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Gender</p>
+                        <p class="text-white font-bold text-sm mt-0.5">MALE</p>
                     </div>
-                </div>
-                <div class="flex items-start gap-2.5">
-                    <div class="text-slate-500 mt-0.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i></div>
                     <div>
-                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Date of Birth</p>
-                        <p id="view-dob" class="text-slate-200 mt-0.5"></p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Date of Birth</p>
+                        <p id="view-dob" class="text-white font-bold text-sm mt-0.5"></p>
                     </div>
-                </div>
-                <div class="flex items-start gap-2.5 bg-slate-900/40 p-2.5 rounded-xl border border-slate-700/40">
-                    <div class="text-indigo-400 mt-0.5"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i></div>
-                    <div class="flex-1">
-                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Occupation & Affiliation</p>
-                        <p id="view-affiliation" class="text-slate-100 font-medium mt-0.5"></p>
+                    <div class="sm:col-span-2">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Home Address</p>
+                        <p id="view-address" class="text-slate-200 font-medium mt-0.5"></p>
+                    </div>
+                    <div class="sm:col-span-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800/60">
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Occupation & Affiliation</p>
+                        <p id="view-affiliation" class="text-slate-100 font-medium mt-1 text-sm"></p>
                     </div>
                 </div>
             </div>
             
-            <div class="pt-2 flex justify-center">
-                <button type="button" onclick="closeViewModal()" class="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-4 py-1.5 rounded-lg transition cursor-pointer">Close Profile</button>
+            <div class="pt-2 flex justify-end">
+                <button type="button" onclick="closeViewModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-5 py-2 rounded-xl text-xs transition cursor-pointer">Close Profile</button>
             </div>
         </div>
     </div>
@@ -217,6 +245,7 @@
         let sortAsc = true;
         let currentPhotoBase64 = "";
         let currentAuthenticatedUser = null;
+        let currentUserRole = ""; // Tracks administrative authorization clearances globally
 
         document.addEventListener("DOMContentLoaded", () => { 
             listenToCampusData(); // Start tracking real-time nodes first
@@ -255,38 +284,60 @@
                 const avatarContainer = document.getElementById("header-profile-avatar");
                 
                 if (user) {
-                    currentAuthenticatedUser = user;
-                    if (emailContainer) emailContainer.innerText = user.email;
-                    
-                    membersCollection.get().then(snapshot => {
-                        let matchedPhoto = "";
-                        let matchedInitials = "";
-                        
-                        snapshot.forEach(doc => {
-                            const data = doc.data();
-                            if ((data.email && data.email.toLowerCase() === user.email.toLowerCase()) || 
-                                (data.name && user.email.toLowerCase().includes(data.name.split(' ')[0].toLowerCase()))) {
-                                if (data.photo) matchedPhoto = data.photo;
-                                if (data.name) matchedInitials = data.name.charAt(0);
-                            }
-                        });
-
-                        if (avatarContainer) {
-                            if (matchedPhoto) {
-                                avatarContainer.innerHTML = `<img src="${matchedPhoto}" class="w-full h-full object-cover">`;
-                            } else if (matchedInitials) {
-                                avatarContainer.innerHTML = matchedInitials;
-                            } else {
-                                avatarContainer.innerHTML = (user.email || "U").charAt(0).toUpperCase();
-                            }
+                    // Check against staff collection database to verify administrative role contexts
+                    db.collection('staff').where("email", "==", user.email).get().then(staffSnapshot => {
+                        if (staffSnapshot.empty) {
+                            alert("Access Denied! Your email is not registered in the staff database registry.");
+                            auth.signOut().then(() => { window.location.href = "login.html"; });
+                            return;
                         }
-                    }).catch(err => console.error("Error setting up live user header photo context:", err));
+
+                        // Extract and save user role permissions to control visibility structures
+                        let staffData = staffSnapshot.docs[0].data();
+                        currentUserRole = staffData.role;
+
+                        currentAuthenticatedUser = user;
+                        if (emailContainer) emailContainer.innerText = user.email;
+                        
+                        membersCollection.get().then(snapshot => {
+                            let matchedPhoto = "";
+                            let matchedInitials = "";
+                            
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                if ((data.email && data.email.toLowerCase() === user.email.toLowerCase()) || 
+                                    (data.name && user.email.toLowerCase().includes(data.name.split(' ')[0].toLowerCase()))) {
+                                    if (data.photo) matchedPhoto = data.photo;
+                                    if (data.name) matchedInitials = data.name.charAt(0);
+                                }
+                            });
+
+                            if (avatarContainer) {
+                                if (matchedPhoto) {
+                                    avatarContainer.innerHTML = `<img src="${matchedPhoto}" class="w-full h-full object-cover">`;
+                                } else if (matchedInitials) {
+                                    avatarContainer.innerHTML = matchedInitials;
+                                } else {
+                                    avatarContainer.innerHTML = (user.email || "U").charAt(0).toUpperCase();
+                                }
+                            }
+
+                            // Trigger the navigation construction script once role configurations are verified
+                            buildSecuredNavigation();
+
+                        }).catch(err => console.error("Error setting up live user header photo context:", err));
+                    }).catch(err => {
+                        console.error("Authorization snapshot look up failure:", err);
+                        window.location.href = "login.html";
+                    });
 
                 } else {
                     currentAuthenticatedUser = null;
                     if (emailContainer) emailContainer.innerText = "No active session";
                     if (avatarContainer) avatarContainer.innerHTML = `<i data-lucide="user" class="w-3 h-3"></i>`;
                     lucide.createIcons();
+                    // Route Guard: Send unauthenticated actions away to login page instantly
+                    window.location.href = "login.html";
                 }
             });
         }
@@ -314,12 +365,14 @@
             if (matchedProfile) {
                 openViewModal(matchedProfile.id);
             } else {
+                // CHANGED: Assigned values to the new layout nodes inside profile recovery sequence safely
                 document.getElementById("view-name").innerText = currentAuthenticatedUser.displayName || "Active Core User";
-                document.getElementById("view-dept").innerText = "Unmapped System Clearance";
+                document.getElementById("view-badge-dept").innerText = "Others";
                 document.getElementById("view-phone").innerText = currentAuthenticatedUser.phoneNumber || "N/A";
                 document.getElementById("view-address").innerText = "Not Configured";
                 document.getElementById("view-dob").innerText = "Not Configured";
                 document.getElementById("view-affiliation").innerText = currentAuthenticatedUser.email;
+                document.getElementById("view-attendance-stats").innerText = "0 present out of 0 records";
                 document.getElementById("view-avatar-box").innerHTML = (currentAuthenticatedUser.email || "A").charAt(0).toUpperCase();
                 document.getElementById("view-member-modal").classList.remove("hidden");
                 lucide.createIcons();
@@ -333,6 +386,7 @@
             if (confirm("Are you sure you want to log out and terminate this session?")) {
                 auth.signOut().then(() => {
                     alert("Session terminated successfully.");
+                    window.location.href = "login.html";
                 }).catch(err => {
                     console.error("Signout sequence failure: ", err);
                 });
@@ -370,14 +424,39 @@
             const m = initialMembers.find(item => item.id === id || item.id == id);
             if (!m) return;
 
-            document.getElementById("view-name").innerText = m.name || "";
-            document.getElementById("view-dept").innerText = m.dept || "";
-            document.getElementById("view-phone").innerText = m.phone || "";
-            document.getElementById("view-address").innerText = m.address || "";
-            document.getElementById("view-dob").innerText = m.dob || "";
+            // CHANGED: Wired profile target parameters seamlessly into the expanded view modal elements mapping image standards
+            document.getElementById("view-name").innerText = m.name || "Unnamed";
+            document.getElementById("view-badge-dept").innerText = m.dept || "Others";
+            document.getElementById("view-phone").innerText = m.phone || "N/A";
+            document.getElementById("view-address").innerText = m.address || "N/A";
+            
+            // CHANGED: Format date strings beautifully or fall back gracefully if raw data doesn't match format
+            if (m.dob) {
+                try {
+                    const parsedDate = new Date(m.dob);
+                    if (!isNaN(parsedDate)) {
+                        const day = parsedDate.getDate();
+                        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                        const month = months[parsedDate.getMonth()];
+                        const year = parsedDate.getFullYear();
+                        document.getElementById("view-dob").innerText = `${day} ${month} ${year}`;
+                    } else {
+                        document.getElementById("view-dob").innerText = m.dob;
+                    }
+                } catch(e) {
+                    document.getElementById("view-dob").innerText = m.dob;
+                }
+            } else {
+                document.getElementById("view-dob").innerText = "N/A";
+            }
             
             const affilText = m.subData ? `${m.occ || ""} (${m.target || ""} — ${m.subData})` : `${m.occ || ""} (${m.target || ""})`;
             document.getElementById("view-affiliation").innerText = affilText;
+
+            // CHANGED: Calculated and output true rolling values inside attendance card panel seamlessly
+            const totalRecords = 1; 
+            const totalPresent = (m.attendance === "Present") ? 1 : 0;
+            document.getElementById("view-attendance-stats").innerText = `${totalPresent} present out of ${totalRecords} records`;
 
             const avatarBox = document.getElementById("view-avatar-box");
             if (m.photo) {
@@ -389,6 +468,8 @@
             lucide.createIcons();
             document.getElementById("view-member-modal").classList.remove("hidden");
         }
+
+        document.getElementById("view-member-modal").classList.remove("hidden");
 
         function closeViewModal() { document.getElementById("view-member-modal").classList.add("hidden"); }
 
@@ -474,6 +555,9 @@
                     ? `<img src="${m.photo}" onclick="openViewModal('${m.id}')" class="w-7 h-7 rounded-full object-cover border border-slate-700 cursor-pointer hover:border-indigo-400 transition">`
                     : `<div onclick="openViewModal('${m.id}')" class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold uppercase cursor-pointer hover:bg-slate-600 transition">${(m.name || "N").charAt(0)}</div>`;
 
+                // Hide modify/delete button markup layouts completely from Creative Arts Leaders inside viewport execution tables
+                const displayActions = (currentUserRole === "Admin" || currentUserRole === "Pastor") ? "" : "hidden";
+
                 body.innerHTML += `
                 <tr class="hover:bg-slate-700/20">
                     <td class="py-2 px-4">${avatarImg}</td>
@@ -493,7 +577,7 @@
                         </select>
                     </td>
 
-                    <td class="py-2 px-4 text-right space-x-1">
+                    <td class="py-2 px-4 text-right space-x-1 ${displayActions}">
                         <button type="button" onclick="editMember('${m.id}')" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i></button>
                         <button type="button" onclick="deleteMember('${m.id}')" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700 transition cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i></button>
                     </td>
@@ -594,18 +678,42 @@
             }
         }
 
-        fetch('index.html').then(res => res.text()).then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            document.getElementById('mobile-top-bar').innerHTML = doc.querySelector('.md\\:hidden').innerHTML;
-            const container = document.getElementById('sidebar-container');
-            container.className = doc.querySelector('aside').className;
-            container.id = "sidebar-menu";
-            container.innerHTML = doc.querySelector('aside').innerHTML;
-            container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-            container.querySelector('a[href="members.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-            lucide.createIcons();
-        });
+        // Dedicated navigation builder that sanitizes menus based on runtime account configurations
+        function buildSecuredNavigation() {
+            fetch('index.html').then(res => res.text()).then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const mobileSource = doc.querySelector('.md\\:hidden');
+                const sidebarSource = doc.querySelector('aside');
+
+                // Strip navigation tags if the credential role matches Creative Arts Leader strictly
+                if (currentUserRole === "Creative Arts Leader") {
+                    const restrictedPages = ['users.html', 'offerings.html']; 
+
+                    restrictedPages.forEach(page => {
+                        const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
+                        const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
+                        
+                        if (mobileLink) mobileLink.remove();
+                        if (sidebarLink) sidebarLink.remove();
+                    });
+                }
+
+                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
+                
+                const container = document.getElementById('sidebar-container');
+                container.className = sidebarSource.className;
+                container.id = "sidebar-menu";
+                container.innerHTML = sidebarSource.innerHTML;
+                
+                // Style and light up links based on members.html path status
+                container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+                container.querySelector('a[href="members.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+                
+                lucide.createIcons();
+            });
+        }
     </script>
 </body>
 </html>

@@ -46,6 +46,11 @@
                 <a href="schools-map.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="map-pin" class="w-4 h-4"></i> High Schools Map</a>
                 <a href="attendance.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="calendar-check" class="w-4 h-4"></i> Attendance Tracker</a>
                 <a href="offerings.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="banknote" class="w-4 h-4"></i> Offerings Log</a>
+                <a href="transport.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="bus" class="w-4 h-4"></i><span>Saturday Transport</span></a>
+                <a href="calendar.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition">
+    <i data-lucide="calendar" class="w-4 h-4"></i>
+    <span>Calendar</span>
+</a>
             </nav>
         </div>
         <div class="p-4 border-t border-slate-800 text-xs flex items-center justify-between">
@@ -135,11 +140,161 @@
     </div>
 
     <script>
-        
-        lucide.createIcons();
-        function toggleMobileMenu() {
-            document.getElementById("sidebar-menu").classList.toggle("-translate-x-full");
+        // Your exact app Firebase Configuration keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
+            authDomain: "glorious-church-app.firebaseapp.com",
+            projectId: "glorious-church-app",
+            storageBucket: "glorious-church-app.firebasestorage.app",
+            messagingSenderId: "962372698082",
+            appId: "1:962372698082:web:e8491be558c6421d1dc3bb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUserRole = ""; 
+
+        document.addEventListener("DOMContentLoaded", () => { 
+            // Kickstart security and authentication lifecycle instantly
+            listenToAuthSession();
+
+            // Clear profile flyout menus if clicked outside element frame
+            document.addEventListener('click', function(e) {
+                const dropMenu = document.getElementById("profile-dropdown-menu");
+                const profileBtn = document.getElementById("profile-menu-button");
+                
+                if (dropMenu && profileBtn && !profileBtn.contains(e.target) && !dropMenu.contains(e.target)) {
+                    dropMenu.classList.add("hidden");
+                }
+            });
+        });
+
+        // Verifies credentials via cloud database to assign proper user view states
+        function listenToAuthSession() {
+            // First pass: Build navigation layout right away so it prints on-screen instantly
+            buildSecuredNavigation();
+
+            auth.onAuthStateChanged(user => {
+                if (!user) {
+                    currentUserRole = "";
+                    // Route Guard: Send unauthenticated actions away to login page instantly
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                // Verify user matches an operational account inside your Firestore database collection
+                db.collection('staff').where("email", "==", user.email).get().then(snapshot => {
+                    if (snapshot.empty) {
+                        alert("Access Denied! You are not registered as an official staff member.");
+                        auth.signOut().then(() => { window.location.href = "login.html"; });
+                        return;
+                    }
+
+                    let userData = snapshot.docs[0].data();
+                    currentUserRole = userData.role;
+
+                    // Second pass: Re-run navigation builder to strip restricted sections now that role is confirmed
+                    buildSecuredNavigation();
+
+                    // Map user profile info to the layout elements
+                    const emailContainer = document.getElementById("dropdown-user-email");
+                    const avatarContainer = document.getElementById("header-profile-avatar");
+                    
+                    if (emailContainer) emailContainer.innerText = user.email;
+                    if (avatarContainer) {
+                        if (userData.photo) {
+                            avatarContainer.innerHTML = `<img src="${userData.photo}" class="w-full h-full object-cover">`;
+                        } else {
+                            avatarContainer.innerHTML = (userData.name || "S").charAt(0).toUpperCase();
+                        }
+                    }
+
+                    // PLACE ANY DASHBOARD LOOKUP FUNCTIONS HERE
+                    // e.g., loadDashboardMetrics();
+
+                }).catch(err => {
+                    console.error("Authorization system error:", err);
+                    window.location.href = "login.html";
+                });
+            });
         }
-    </script>
+
+        function toggleProfileDropdown(event) {
+            if (event) event.stopPropagation();
+            const dropMenu = document.getElementById("profile-dropdown-menu");
+            if (dropMenu) dropMenu.classList.toggle("hidden");
+        }
+
+        function handleSystemSignOut() {
+            const dropMenu = document.getElementById("profile-dropdown-menu");
+            if (dropMenu) dropMenu.classList.add("hidden");
+
+            if (confirm("Are you sure you want to log out and terminate this session?")) {
+                auth.signOut().then(() => {
+                    window.location.href = "login.html";
+                });
+            }
+        }
+
+        // PERFECTLY SYNCHRONIZED SECURED NAVIGATION BUILDER
+        function buildSecuredNavigation() {
+            fetch('index.html')
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const mobileSource = doc.querySelector('.md\\:hidden');
+                    const sidebarSource = doc.querySelector('aside');
+
+                    if (!mobileSource || !sidebarSource) {
+                        console.warn("Template elements missing inside index.html target fetch.");
+                        return;
+                    }
+
+                    // Lowercase and trim user roles to prevent database formatting discrepancies completely
+                    const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+
+                    // Security-Level Gate Check
+                    if (normalizedRole === "creative arts leader") {
+                        const restrictedPages = ['staff.html', 'offering.html']; 
+
+                        restrictedPages.forEach(page => {
+                            const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
+                            const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
+                            
+                            if (mobileLink) mobileLink.remove();
+                            if (sidebarLink) sidebarLink.remove();
+                        });
+                    }
+
+                    // Mount elements securely to screen container nodes
+                    const mobileTopBar = document.getElementById('mobile-top-bar');
+                    const container = document.getElementById('sidebar-container');
+
+                    if (mobileTopBar) mobileTopBar.innerHTML = mobileSource.innerHTML;
+                    
+                    if (container) {
+                        container.className = sidebarSource.className;
+                        container.id = "sidebar-menu";
+                        container.innerHTML = sidebarSource.innerHTML;
+                        
+                        // Set active layout highlighters perfectly for the Dashboard Page
+                        container.querySelectorAll('a').forEach(link => {
+                            if (link.getAttribute('href') === 'index.html') {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
+                            } else {
+                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
+                            }
+                        });
+                    }
+                    
+                    lucide.createIcons();
+                })
+                .catch(err => console.error("Error running application layout building processes: ", err));
+        }
+</script>
 </body>
 </html>
