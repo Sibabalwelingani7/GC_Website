@@ -148,6 +148,67 @@
         </div>
     </div>
 
+    <!-- Popup Metadata Viewer Modal Frame (Shows Driver Details layout based on image_880d00.png) -->
+    <div id="view-driver-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#0b1329]/40 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 relative overflow-y-auto max-h-[95vh] space-y-6 shadow-2xl">
+            
+            <button type="button" onclick="closeViewDriverModal()" class="text-slate-400 hover:text-white cursor-pointer flex items-center gap-2 text-xs font-medium bg-transparent border-0 p-0 mb-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Drivers
+            </button>
+            
+            <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                <div id="vd-avatar-box" class="w-40 h-40 rounded-xl bg-slate-700 border border-slate-600 overflow-hidden flex items-center justify-center text-4xl font-bold uppercase text-white shrink-0 shadow-md"></div>
+                
+                <div class="flex-1 space-y-3 text-center sm:text-left w-full">
+                    <div>
+                        <h3 id="vd-name" class="text-2xl font-bold text-white tracking-wide"></h3>
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+                            <span id="vd-badge-status" class="px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase"></span>
+                            <span class="bg-blue-950/60 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase">Logistics Vendor</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-semibold pt-1">
+                        <div class="flex items-center gap-1.5 text-sky-400">
+                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                            <span id="vd-phone"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-emerald-400">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>WhatsApp</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 text-left space-y-1.5 w-full">
+                        <p class="text-[11px] text-slate-400 font-medium">Assigned Operational Route</p>
+                        <p id="vd-route-text" class="text-xs font-semibold text-indigo-400"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <div class="text-slate-300 font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <i data-lucide="user" class="w-4 h-4 text-orange-400"></i> Vehicle & Asset Registry Info
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Vehicle Details Description</p>
+                        <p id="vd-vehicle-desc" class="text-white font-bold text-sm mt-0.5"></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Seating Capacity</p>
+                        <p id="vd-capacity-desc" class="text-white font-bold text-sm mt-0.5"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-2 flex justify-end">
+                <button type="button" onclick="closeViewDriverModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold px-5 py-2 rounded-xl text-xs transition cursor-pointer">Close Profile</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Core App Firebase Application SDK Initialization Layer Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -265,6 +326,40 @@
             }
         }
 
+        function openViewDriverModal(id) {
+            const d = driversList.find(item => item.id === id);
+            if (!d) return;
+
+            document.getElementById("vd-name").innerText = d.name || "N/A";
+            document.getElementById("vd-phone").innerText = d.phone || "N/A";
+            document.getElementById("vd-route-text").innerText = d.route || "Unassigned Circuit";
+            document.getElementById("vd-vehicle-desc").innerText = d.vehicle || "N/A";
+            document.getElementById("vd-capacity-desc").innerText = `${d.capacity || "0"} Max Seating Seats`;
+
+            const badge = document.getElementById("vd-badge-status");
+            if (d.status === "Active") {
+                badge.innerText = "Active";
+                badge.className = "bg-emerald-950/60 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase";
+            } else {
+                badge.innerText = "Inactive";
+                badge.className = "bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase";
+            }
+
+            const avatarBox = document.getElementById("vd-avatar-box");
+            if (d.photo) {
+                avatarBox.innerHTML = `<img src="${d.photo}" class="w-full h-full object-cover">`;
+            } else {
+                avatarBox.innerHTML = (d.name || "D").charAt(0).toUpperCase();
+            }
+
+            lucide.createIcons();
+            document.getElementById("view-driver-modal").classList.remove("hidden");
+        }
+
+        function closeViewDriverModal() {
+            document.getElementById("view-driver-modal").classList.add("hidden");
+        }
+
         function renderDriversTable(data) {
             const body = document.getElementById("drivers-table-body");
             if (!body) return;
@@ -280,8 +375,8 @@
 
             data.forEach(d => {
                 const imgNode = d.photo
-                    ? `<img src="${d.photo}" class="w-8 h-8 rounded-lg object-cover border border-slate-700">`
-                    : `<div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-300 font-bold uppercase">${(d.name || "D").charAt(0)}</div>`;
+                    ? `<img src="${d.photo}" class="w-8 h-8 rounded-lg object-cover border border-slate-700 cursor-pointer">`
+                    : `<div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-300 font-bold uppercase cursor-pointer">${(d.name || "D").charAt(0)}</div>`;
 
                 const statusBadge = d.status === "Active"
                     ? `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide">Active</span>`
@@ -289,8 +384,8 @@
 
                 body.innerHTML += `
                 <tr class="hover:bg-slate-700/20 transition duration-150">
-                    <td class="py-3 px-4">${imgNode}</td>
-                    <td class="py-3 px-4 font-semibold text-white">${d.name || "N/A"}</td>
+                    <td class="py-3 px-4" onclick="openViewDriverModal('${d.id}')">${imgNode}</td>
+                    <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-indigo-400 hover:underline" onclick="openViewDriverModal('${d.id}')">${d.name || "N/A"}</td>
                     <td class="py-3 px-4 font-mono text-slate-400 text-xs">${d.phone || "N/A"}</td>
                     <td class="py-3 px-4">
                         <div class="text-white font-medium">${d.vehicle || "N/A"}</div>
