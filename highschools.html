@@ -6,8 +6,10 @@
     <title>The Glorious Church - High Schools</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
@@ -20,9 +22,35 @@
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
         <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <h2 class="text-base font-bold text-white tracking-wide">High Schools Allocation Roster</h2>
-            <button onclick="openSchoolModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
-                <i data-lucide="plus"></i> Add High School
-            </button>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="openSchoolModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
+                    <i data-lucide="plus"></i> Add High School
+                </button>
+
+                <div class="relative inline-block text-left z-50">
+                    <button id="profile-menu-button" onclick="toggleProfileDropdown(event)" class="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-lg px-3 py-1.5 text-[11px] text-white transition font-medium cursor-pointer shadow-sm select-none">
+                        <div id="header-profile-avatar" class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] uppercase font-bold text-white overflow-hidden shrink-0 border border-indigo-400/30">
+                            <i data-lucide="user" class="w-3 h-3"></i>
+                        </div>
+                        <span class="pointer-events-none">My profile</span>
+                        <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 pointer-events-none"></i>
+                    </button>
+
+                    <div id="profile-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 rounded-lg bg-slate-800 border border-slate-700 shadow-xl py-1 text-[11px] z-50">
+                        <div class="px-3 py-2 border-b border-slate-700/60 bg-slate-900/20">
+                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Signed In As</p>
+                            <p id="dropdown-user-email" class="text-slate-200 font-mono truncate mt-0.5">Guest Identity</p>
+                        </div>
+                        <button onclick="showCurrentUserProfile()" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-700/50 hover:text-white flex items-center gap-2 cursor-pointer transition">
+                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-indigo-400"></i> Account Settings
+                        </button>
+                        <button onclick="handleSystemSignOut()" class="w-full text-left px-3 py-2 text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 cursor-pointer border-t border-slate-700/40 transition">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
@@ -103,7 +131,12 @@
             buildSecuredNavigation();
 
             firebase.auth().onAuthStateChanged(user => {
+                const emailContainer = document.getElementById("dropdown-user-email");
+                const avatarContainer = document.getElementById("header-profile-avatar");
+
                 if (user) {
+                    if (emailContainer) emailContainer.innerText = user.email;
+
                     db.collection('staff').where("email", "==", user.email).get().then(staffSnapshot => {
                         if (staffSnapshot.empty) {
                             alert("Access Denied! Your email is not registered in the staff database registry.");
@@ -115,6 +148,30 @@
                         let staffData = staffSnapshot.docs[0].data();
                         currentUserRole = staffData.role;
 
+                        // Retrieve authenticated user data photo info to populate upper menu bar context
+                        db.collection('members').get().then(snapshot => {
+                            let matchedPhoto = "";
+                            let matchedInitials = "";
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                if ((data.email && data.email.toLowerCase() === user.email.toLowerCase()) || 
+                                    (data.name && user.email.toLowerCase().includes(data.name.split(' ')[0].toLowerCase()))) {
+                                    if (data.photo) matchedPhoto = data.photo;
+                                    if (data.name) matchedInitials = data.name.charAt(0);
+                                }
+                            });
+
+                            if (avatarContainer) {
+                                if (matchedPhoto) {
+                                    avatarContainer.innerHTML = `<img src="${matchedPhoto}" class="w-full h-full object-cover">`;
+                                } else if (matchedInitials) {
+                                    avatarContainer.innerHTML = matchedInitials;
+                                } else {
+                                    avatarContainer.innerHTML = (user.email || "U").charAt(0).toUpperCase();
+                                }
+                            }
+                        });
+
                         // Re-run the navigation builder now that we know the role to filter restricted pages safely
                         buildSecuredNavigation();
                     }).catch(err => {
@@ -123,6 +180,8 @@
                     });
                 } else {
                     currentUserRole = "";
+                    if (emailContainer) emailContainer.innerText = "No active session";
+                    if (avatarContainer) avatarContainer.innerHTML = `<i data-lucide="user" class="w-3 h-3"></i>`;
                     // Route Guard: Send unauthenticated actions away to login page instantly
                     window.location.href = "login.html";
                 }
@@ -303,6 +362,9 @@
                 lucide.createIcons();
             });
         }
+
+        
     </script>
+<script src="profile-global.js"></script>
 </body>
 </html>
