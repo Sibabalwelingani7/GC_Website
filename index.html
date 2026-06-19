@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Glorious Church - Dashboard</title>
+    <!-- Firebase App and Service SDK scripts added safely to run script handlers -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
+    <!-- Mobile Header -->
     <div class="md:hidden bg-slate-950 border-b border-slate-800 p-4 flex justify-between items-center z-50 sticky top-0 shrink-0">
         <div class="flex items-center gap-2">
-            <i data-lucide="church" class="text-indigo-400 w-5 h-5"></i>
+            <img src="img/GC_logo.png" alt="Glorious Church Logo" class="w-8 h-8 object-contain">
             <h1 class="text-xs font-bold tracking-wide uppercase text-indigo-300">The Glorious Church</h1>
         </div>
         <button onclick="toggleMobileMenu()" class="text-slate-400 hover:text-white focus:outline-none cursor-pointer">
@@ -19,23 +24,22 @@
         </button>
     </div>
 
+    <!-- Responsive Sidebar Menu Drawer -->
     <aside id="sidebar-menu" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 w-64 bg-slate-950 border-r border-slate-800 h-screen z-40 flex flex-col justify-between shrink-0 transition-transform duration-300 ease-in-out">
         <div>
             <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <!-- Replaced Lucide icon with the image logo -->
-        <img src="img/GC_logo.png" alt="Glorious Church Logo" class="w-10 h-10 object-contain">
-        <div>
-            <h1 class="text-sm font-bold tracking-wide uppercase text-indigo-300">The Glorious Church</h1>
-            <!-- <span class="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded font-medium">Youth</span> -->
-        </div>
-    </div>
-    <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white cursor-pointer">
-        <i data-lucide="x" class="w-5 h-5"></i>
-    </button>
-</div>
+                <div class="flex items-center gap-2">
+                    <img src="img/GC_logo.png" alt="Glorious Church Logo" class="w-10 h-10 object-contain">
+                    <div>
+                        <h1 class="text-sm font-bold tracking-wide uppercase text-indigo-300">The Glorious Church</h1>
+                    </div>
+                </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
             
-            <nav class="p-4 space-y-1 text-xs">
+            <nav id="nav-links-container" class="p-4 space-y-1 text-xs">
                 <a href="index.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Overview</a>
                 <a href="users.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="shield-check" class="w-4 h-4"></i> System Users</a>
                 <a href="members.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="users" class="w-4 h-4"></i> Members Directory</a>
@@ -48,18 +52,41 @@
                 <a href="attendance.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="calendar-check" class="w-4 h-4"></i> Attendance Tracker</a>
                 <a href="offerings.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="banknote" class="w-4 h-4"></i> Offerings Log</a>
                 <a href="transport.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="bus" class="w-4 h-4"></i><span>Saturday Transport</span></a>
-                <a href="calendar.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition">
-    <i data-lucide="calendar" class="w-4 h-4"></i>
-    <span>Calendar</span>
-</a>
+                <a href="calendar.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="calendar" class="w-4 h-4"></i><span>Calendar</span></a>
             </nav>
         </div>
-        <div class="p-4 border-t border-slate-800 text-xs flex items-center justify-between">
-            <span class="text-slate-500">Logged in as Pastor</span>
-            <a href="login.html" class="text-rose-400 hover:underline"><i data-lucide="log-out" class="w-4 h-4 inline"></i></a>
+
+        <!-- Integrated Profile Controller Section with Dynamic Context Dropdown View -->
+        <div class="p-4 border-t border-slate-800 text-xs relative">
+            <div id="profile-dropdown-menu" class="hidden absolute bottom-16 left-4 right-4 bg-slate-950 border border-slate-800 rounded-lg p-2 shadow-xl z-50 space-y-1">
+                <div class="px-3 py-2 border-b border-slate-800/60 mb-1">
+                    <p class="font-semibold text-white truncate" id="dropdown-username">Staff Member</p>
+                    <p class="text-[10px] text-slate-400 truncate" id="dropdown-user-email">loading session...</p>
+                </div>
+                <a href="users.html" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 transition">
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i> My Profile Settings
+                </a>
+                <button onclick="handleSystemSignOut()" class="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-rose-500/10 text-rose-400 text-left transition cursor-pointer">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Terminate Session
+                </button>
+            </div>
+
+            <button onclick="toggleProfileDropdown(event)" id="profile-menu-button" class="w-full flex items-center justify-between p-1 rounded-lg hover:bg-slate-900 text-left cursor-pointer transition">
+                <div class="flex items-center gap-2.5 truncate">
+                    <div id="header-profile-avatar" class="w-7 h-7 rounded-full bg-indigo-600 border border-indigo-400/30 flex items-center justify-center text-white font-bold text-xs uppercase shrink-0 overflow-hidden">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                    </div>
+                    <div class="truncate">
+                        <p class="font-medium text-slate-200" id="sidebar-profile-name">Pastor</p>
+                        <p class="text-[10px] text-indigo-400 uppercase tracking-wider" id="sidebar-profile-role">Staff</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-up" class="w-4 h-4 text-slate-500 shrink-0"></i>
+            </button>
         </div>
     </aside>
 
+    <!-- Main Section Structure Container Frame -->
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
         <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <h2 class="text-base font-bold text-white tracking-wide">Dashboard Overview</h2>
@@ -68,30 +95,32 @@
 
         <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-6xl w-full mx-auto space-y-6">
             
+            <!-- Real-time Connected Metric Dashboard Widgets Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center justify-between shadow-sm">
                     <div>
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Roster Members</p>
-                        <h3 class="text-2xl md:text-3xl font-bold mt-1 text-white">154</h3>
+                        <h3 id="metric-total-members" class="text-2xl md:text-3xl font-bold mt-1 text-white">...</h3>
                     </div>
                     <div class="p-3 bg-blue-500/10 rounded-lg text-blue-400"><i data-lucide="users" class="w-6 h-6"></i></div>
                 </div>
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center justify-between shadow-sm">
                     <div>
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Year Offerings</p>
-                        <h3 class="text-2xl md:text-3xl font-bold mt-1 text-white">R24,500.00</h3>
+                        <h3 id="metric-total-offerings" class="text-2xl md:text-3xl font-bold mt-1 text-white">R0.00</h3>
                     </div>
                     <div class="p-3 bg-emerald-500/10 rounded-lg text-emerald-400"><i data-lucide="banknote" class="w-6 h-6"></i></div>
                 </div>
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 flex items-center justify-between shadow-sm">
                     <div>
                         <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Avg Youth Attendance</p>
-                        <h3 class="text-2xl md:text-3xl font-bold mt-1 text-white">88%</h3>
+                        <h3 id="metric-avg-attendance" class="text-2xl md:text-3xl font-bold mt-1 text-white">0%</h3>
                     </div>
                     <div class="p-3 bg-violet-500/10 rounded-lg text-violet-400"><i data-lucide="activity" class="w-6 h-6"></i></div>
                 </div>
             </div>
 
+            <!-- Dashboard Informational Widgets Area Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 shadow-sm">
                     <div class="flex items-center gap-1.5 border-b border-slate-700 pb-2 mb-3">
@@ -99,49 +128,15 @@
                         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Birthdays This Month</h4>
                     </div>
                     
-                    <div class="space-y-2 text-xs">
-                        <div class="flex justify-between items-center bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
-                            <div>
-                                <p class="font-semibold text-white">Thabo Ndlovu</p>
-                                <p class="text-[10px] text-slate-400">Dance Stars • April 12 (Cape Town High)</p>
-                            </div>
-                            <a href="https://wa.me/27821112233" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded-md transition" title="Send WhatsApp Blessing">
-                                <i data-lucide="message-square" class="w-4 h-4"></i>
-                            </a>
-                        </div>
-
-                        <div class="flex justify-between items-center bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
-                            <div>
-                                <p class="font-semibold text-white">Lwazi Sithole</p>
-                                <p class="text-[10px] text-slate-400">Film Stars • July 02 (Belhar High School)</p>
-                            </div>
-                            <a href="https://wa.me/27637778899" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded-md transition" title="Send WhatsApp Blessing">
-                                <i data-lucide="message-square" class="w-4 h-4"></i>
-                            </a>
-                        </div>
-
-                        <div class="flex justify-between items-center bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
-                            <div>
-                                <p class="font-semibold text-white">Sarah Jenkins</p>
-                                <p class="text-[10px] text-slate-400">Choir • November 23 (UCT Campus)</p>
-                            </div>
-                            <a href="https://wa.me/27714445566" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded-md transition" title="Send WhatsApp Blessing">
-                                <i data-lucide="message-square" class="w-4 h-4"></i>
-                            </a>
-                        </div>
+                    <div id="birthdays-dynamic-container" class="space-y-2 text-xs">
+                        <div class="text-slate-500 italic p-2 text-center">Checking upcoming anniversary celebrations...</div>
                     </div>
                 </div>
-
-                <!-- <div class="bg-slate-800 p-4 rounded-xl border border-slate-700/70 shadow-sm flex flex-col justify-center items-center text-center p-6 text-slate-500 text-xs">
-                    <i data-lucide="info" class="w-8 h-8 text-slate-600 mb-2"></i>
-                    <p>Select tabs from the responsive sidebar layout menu to control high schools, universities, mapping zones, and collections registries.</p>
-                </div> -->
             </div>
         </main>
     </div>
 
     <script>
-        // Your exact app Firebase Configuration keys
         const firebaseConfig = {
             apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
             authDomain: "glorious-church-app.firebaseapp.com",
@@ -158,10 +153,8 @@
         let currentUserRole = ""; 
 
         document.addEventListener("DOMContentLoaded", () => { 
-            // Kickstart security and authentication lifecycle instantly
             listenToAuthSession();
 
-            // Clear profile flyout menus if clicked outside element frame
             document.addEventListener('click', function(e) {
                 const dropMenu = document.getElementById("profile-dropdown-menu");
                 const profileBtn = document.getElementById("profile-menu-button");
@@ -172,20 +165,21 @@
             });
         });
 
-        // Verifies credentials via cloud database to assign proper user view states
-        function listenToAuthSession() {
-            // First pass: Build navigation layout right away so it prints on-screen instantly
-            buildSecuredNavigation();
+        function toggleMobileMenu() {
+            const menu = document.getElementById("sidebar-menu");
+            if (menu) {
+                menu.classList.toggle("-translate-x-full");
+            }
+        }
 
+        function listenToAuthSession() {
             auth.onAuthStateChanged(user => {
                 if (!user) {
                     currentUserRole = "";
-                    // Route Guard: Send unauthenticated actions away to login page instantly
                     window.location.href = "login.html";
                     return;
                 }
 
-                // Verify user matches an operational account inside your Firestore database collection
                 db.collection('staff').where("email", "==", user.email).get().then(snapshot => {
                     if (snapshot.empty) {
                         alert("Access Denied! You are not registered as an official staff member.");
@@ -196,14 +190,21 @@
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
 
-                    // Second pass: Re-run navigation builder to strip restricted sections now that role is confirmed
-                    buildSecuredNavigation();
+                    // Enforce Navigation Guard Role Checking right here on the layout base page
+                    applyRoleNavigationSecurity();
 
-                    // Map user profile info to the layout elements
+                    // Populate Profile Elements
                     const emailContainer = document.getElementById("dropdown-user-email");
+                    const nameContainer = document.getElementById("sidebar-profile-name");
+                    const roleContainer = document.getElementById("sidebar-profile-role");
+                    const dropdownName = document.getElementById("dropdown-username");
                     const avatarContainer = document.getElementById("header-profile-avatar");
                     
                     if (emailContainer) emailContainer.innerText = user.email;
+                    if (nameContainer) nameContainer.innerText = userData.name || "Pastor";
+                    if (dropdownName) dropdownName.innerText = userData.name || "Staff Member";
+                    if (roleContainer) roleContainer.innerText = userData.role || "Staff";
+                    
                     if (avatarContainer) {
                         if (userData.photo) {
                             avatarContainer.innerHTML = `<img src="${userData.photo}" class="w-full h-full object-cover">`;
@@ -212,14 +213,26 @@
                         }
                     }
 
-                    // PLACE ANY DASHBOARD LOOKUP FUNCTIONS HERE
-                    // e.g., loadDashboardMetrics();
+                    // Trigger Live Synchronized Calculations Stream
+                    loadDashboardMetrics();
 
                 }).catch(err => {
                     console.error("Authorization system error:", err);
                     window.location.href = "login.html";
                 });
             });
+        }
+
+        function applyRoleNavigationSecurity() {
+            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
+            if (normalizedRole === "creative arts leader") {
+                const restrictedPages = ['users.html', 'offerings.html']; 
+                restrictedPages.forEach(page => {
+                    const matchedLink = document.querySelector(`#nav-links-container a[href="${page}"]`);
+                    if (matchedLink) matchedLink.remove();
+                });
+            }
+            lucide.createIcons();
         }
 
         function toggleProfileDropdown(event) {
@@ -239,64 +252,106 @@
             }
         }
 
-        // PERFECTLY SYNCHRONIZED SECURED NAVIGATION BUILDER
-        function buildSecuredNavigation() {
-            fetch('index.html')
-                .then(res => res.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    
-                    const mobileSource = doc.querySelector('.md\\:hidden');
-                    const sidebarSource = doc.querySelector('aside');
+        // LIVE DASHBOARD FIRESTORE SYNCHRONIZATION LOOP
+        function loadDashboardMetrics() {
+            // 1. Synchronize Total Roster Members count from members collection
+            db.collection('members').onSnapshot(snapshot => {
+                const totalMembers = snapshot.size;
+                document.getElementById('metric-total-members').innerText = totalMembers;
+                
+                // Process Birthdays dynamically using the live snapshot data
+                renderDynamicBirthdays(snapshot);
+            }, err => console.error("Error reading live members registry streams: ", err));
 
-                    if (!mobileSource || !sidebarSource) {
-                        console.warn("Template elements missing inside index.html target fetch.");
-                        return;
+            // 2. Synchronize Total Year Offerings calculation from offerings collection
+            db.collection('offerings').onSnapshot(snapshot => {
+                let cumulativeSum = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const value = parseFloat(data.amount) || 0;
+                    cumulativeSum += value;
+                });
+                document.getElementById('metric-total-offerings').innerText = "R " + cumulativeSum.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }, err => console.error("Error updating financials tracker widget: ", err));
+
+            // 3. Synchronize Avg Youth Attendance calculation from attendance records
+            db.collection('attendance').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    document.getElementById('metric-avg-attendance').innerText = "0%";
+                    return;
+                }
+                let totalPercentageSum = 0;
+                let recordsCount = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.percentage !== undefined) {
+                        totalPercentageSum += parseFloat(data.percentage) || 0;
+                        recordsCount++;
                     }
-
-                    // Lowercase and trim user roles to prevent database formatting discrepancies completely
-                    const normalizedRole = (currentUserRole || "").trim().toLowerCase();
-
-                    // Security-Level Gate Check
-                    if (normalizedRole === "creative arts leader") {
-                        const restrictedPages = ['staff.html', 'offering.html']; 
-
-                        restrictedPages.forEach(page => {
-                            const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
-                            const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                            
-                            if (mobileLink) mobileLink.remove();
-                            if (sidebarLink) sidebarLink.remove();
-                        });
-                    }
-
-                    // Mount elements securely to screen container nodes
-                    const mobileTopBar = document.getElementById('mobile-top-bar');
-                    const container = document.getElementById('sidebar-container');
-
-                    if (mobileTopBar) mobileTopBar.innerHTML = mobileSource.innerHTML;
-                    
-                    if (container) {
-                        container.className = sidebarSource.className;
-                        container.id = "sidebar-menu";
-                        container.innerHTML = sidebarSource.innerHTML;
-                        
-                        // Set active layout highlighters perfectly for the Dashboard Page
-                        container.querySelectorAll('a').forEach(link => {
-                            if (link.getAttribute('href') === 'index.html') {
-                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                            } else {
-                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                            }
-                        });
-                    }
-                    
-                    lucide.createIcons();
-                })
-                .catch(err => console.error("Error running application layout building processes: ", err));
+                });
+                const evaluationAverage = recordsCount > 0 ? Math.round(totalPercentageSum / recordsCount) : 0;
+                document.getElementById('metric-avg-attendance').innerText = evaluationAverage + "%";
+            }, err => console.error("Error processing operations analytics dashboard log: ", err));
         }
-</script>
-<script src="profile-global.js"></script>
+
+        // DYNAMIC BIRTHDAYS LOGIC CONTAINER BUILDER
+        function renderDynamicBirthdays(membersSnapshot) {
+            const container = document.getElementById('birthdays-dynamic-container');
+            if (!container) return;
+
+            const targetMonth = new Date().getMonth(); // Numerical current month calendar context (0-11)
+            const matchedBirthdaysArr = [];
+
+            membersSnapshot.forEach(doc => {
+                const member = doc.data();
+                if (member.dob || member.birthday) {
+                    const birthDateString = member.dob || member.birthday;
+                    const parsedDate = new Date(birthDateString);
+                    
+                    if (!isNaN(parsedDate.getTime()) && parsedDate.getMonth() === targetMonth) {
+                        matchedBirthdaysArr.push({
+                            name: member.name || "Anonymous Member",
+                            subgroup: member.group || member.creativeArts || "Youth Dept",
+                            school: member.school || member.institution || "Local Area",
+                            day: parsedDate.getDate(),
+                            phone: member.phone || member.whatsapp || ""
+                        });
+                    }
+                }
+            });
+
+            // Sort dates ascending by celebration day number
+            matchedBirthdaysArr.sort((a, b) => a.day - b.day);
+
+            if (matchedBirthdaysArr.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 italic p-3 text-center">No upcoming anniversaries detected this calendar month.</div>`;
+                return;
+            }
+
+            const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+
+            container.innerHTML = matchedBirthdaysArr.map(person => {
+                const formattedPhone = person.phone ? person.phone.replace(/\D/g, '') : '';
+                const whatsappLink = formattedPhone ? `https://wa.me/${formattedPhone}` : '#';
+                const buttonDisabledClass = formattedPhone ? '' : 'opacity-30 pointer-events-none';
+
+                return `
+                    <div class="flex justify-between items-center bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
+                        <div>
+                            <p class="font-semibold text-white">${person.name}</p>
+                            <p class="text-[10px] text-slate-400">${person.subgroup} • ${currentMonthName} ${person.day} (${person.school})</p>
+                        </div>
+                        <a href="${whatsappLink}" target="_blank" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2 rounded-md transition ${buttonDisabledClass}" title="${formattedPhone ? 'Send WhatsApp Blessing' : 'No Phone Number Tracked'}">
+                            <i data-lucide="message-square" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+    </script>
+    <!-- Linked Global Profile Script Dashboard Controller Reference -->
+    <script src="profile-global.js"></script>
 </body>
 </html>
