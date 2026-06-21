@@ -39,7 +39,7 @@
                 </button>
             </div>
             
-            <nav id="nav-links-container" class="p-4 space-y-1 text-xs">
+            <nav class="p-4 space-y-1 text-xs">
                 <a href="index.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Overview</a>
                 <a href="users.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="shield-check" class="w-4 h-4"></i> System Users</a>
                 <a href="members.html" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition"><i data-lucide="users" class="w-4 h-4"></i> Members Directory</a>
@@ -190,9 +190,6 @@
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
 
-                    // Enforce Navigation Guard Role Checking right here on the layout base page
-                    applyRoleNavigationSecurity();
-
                     // Populate Profile Elements
                     const emailContainer = document.getElementById("dropdown-user-email");
                     const nameContainer = document.getElementById("sidebar-profile-name");
@@ -221,18 +218,6 @@
                     window.location.href = "login.html";
                 });
             });
-        }
-
-        function applyRoleNavigationSecurity() {
-            const normalizedRole = (currentUserRole || "").trim().toLowerCase();
-            if (normalizedRole === "creative arts leader") {
-                const restrictedPages = ['users.html', 'offerings.html']; 
-                restrictedPages.forEach(page => {
-                    const matchedLink = document.querySelector(`#nav-links-container a[href="${page}"]`);
-                    if (matchedLink) matchedLink.remove();
-                });
-            }
-            lucide.createIcons();
         }
 
         function toggleProfileDropdown(event) {
@@ -271,7 +256,7 @@
                     const value = parseFloat(data.amount) || 0;
                     cumulativeSum += value;
                 });
-                document.getElementById('metric-total-offerings').innerText = "R " + cumulativeSum.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('metric-total-offerings').innerText = "R" + cumulativeSum.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }, err => console.error("Error updating financials tracker widget: ", err));
 
             // 3. Synchronize Avg Youth Attendance calculation from attendance records
@@ -331,7 +316,7 @@
             const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
 
             container.innerHTML = matchedBirthdaysArr.map(person => {
-                const formattedPhone = person.phone ? person.phone.replace(/\D/g, '') : '';
+                const formattedPhone = person.phone.replace(/\D/g, '');
                 const whatsappLink = formattedPhone ? `https://wa.me/${formattedPhone}` : '#';
                 const buttonDisabledClass = formattedPhone ? '' : 'opacity-30 pointer-events-none';
 
@@ -351,7 +336,6 @@
             lucide.createIcons();
         }
     </script>
-    <!-- Linked Global Profile Script Dashboard Controller Reference -->
     <script src="profile-global.js"></script>
 </body>
 </html>
