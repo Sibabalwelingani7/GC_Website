@@ -12,6 +12,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/shared-modals.js"></script>
+    <script src="js/shared-nav.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -301,7 +303,7 @@
                             if (addEventBtnMobile) addEventBtnMobile.classList.remove("hidden");
                         }
 
-                        buildSecuredNavigation();
+                        buildSecuredNavigation("calendar.html");
                     }).catch(err => {
                         window.location.href = "login.html";
                     });
@@ -353,12 +355,12 @@
                 document.getElementById("modal-info-email").innerText = data.email || "guest@thegloriouschurch.org";
 
                 updateAvatarUIRenderers(data.avatar || "");
-                document.getElementById("user-profile-modal").classList.remove("hidden");
+                showModal("user-profile-modal");
             });
         }
 
         function closeUserProfileModal() {
-            document.getElementById("user-profile-modal").classList.add("hidden");
+            hideModal("user-profile-modal");
         }
 
         // ADDED: Process image file to string array payload mapping and sync seamlessly to Firestore records
@@ -426,12 +428,12 @@
 
         function openEventModal() {
             document.getElementById("add-event-form").reset();
-            document.getElementById("add-event-modal").classList.remove("hidden");
+            showModal("add-event-modal");
             lucide.createIcons();
         }
 
         function closeEventModal() {
-            document.getElementById("add-event-modal").classList.add("hidden");
+            hideModal("add-event-modal");
         }
 
         function handleEventFormSubmit(e) {
@@ -601,47 +603,7 @@
             lucide.createIcons();
         }
 
-        function buildSecuredNavigation() {
-            fetch('index.html').then(res => res.text()).then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const mobileSource = doc.querySelector('.md\\:hidden');
-                const sidebarSource = doc.querySelector('aside');
-
-                if (currentUserRole === "Creative Arts Leader") {
-                    const restrictedPages = ['users.html', 'offerings.html'];
-                    restrictedPages.forEach(page => {
-                        const mLink = mobileSource.querySelector(`a[href="${page}"]`);
-                        const sLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                        if (mLink) mLink.remove();
-                        if (sLink) sLink.remove();
-                    });
-                }
-
-                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
-                
-                const container = document.getElementById('sidebar-container');
-                if(!container) return;
-                container.className = sidebarSource.className;
-                container.id = "sidebar-menu";
-                container.innerHTML = sidebarSource.innerHTML;
-                
-                const allNavLinks = container.querySelectorAll('a');
-                allNavLinks.forEach(link => {
-                    if(link.getAttribute('href') === 'calendar.html') {
-                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                    } else {
-                        if(link.classList.contains('bg-indigo-600')) {
-                            link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                        }
-                    }
-                });
-
-                lucide.createIcons();
-            });
-        }
-        function toggleMobileMenu() { document.getElementById("sidebar-menu").classList.toggle("-translate-x-full"); }
     </script>
+    <script src="profile-global.js"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/shared-nav.js"></script>
     <style>
         .leaflet-popup-content-wrapper { background: #1e293b; color: #f8fafc; border: 1px solid #475569; border-radius: 0.5rem; }
         .leaflet-popup-tip { background: #1e293b; border: 1px solid #475569; }
@@ -68,7 +69,7 @@
         // Verifies credentials via cloud database to assign proper user view states
         function listenToAuthSession() {
             // Build the sidebar layout instantly on load so it never disappears or flickers
-            buildSecuredNavigation();
+            buildSecuredNavigation("schools-map.html");
 
             firebase.auth().onAuthStateChanged(user => {
                 if (user) {
@@ -84,7 +85,7 @@
                         currentUserRole = staffData.role;
 
                         // Re-run the navigation builder now that we know the role to filter restricted pages safely
-                        buildSecuredNavigation();
+                        buildSecuredNavigation("schools-map.html");
                     }).catch(err => {
                         console.error("Authorization snapshot look up failure:", err);
                         window.location.href = "login.html";
@@ -145,48 +146,6 @@
         }
 
         // Shared universal dynamic template sidebar frame logic injection
-        function buildSecuredNavigation() {
-            fetch('index.html').then(res => res.text()).then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const mobileSource = doc.querySelector('.md\\:hidden');
-                const sidebarSource = doc.querySelector('aside');
-
-                // Strip navigation segments if the current credentials flag matches Creative Arts Leader
-                if (currentUserRole === "Creative Arts Leader") {
-                    const restrictedPages = ['users.html', 'offerings.html']; 
-
-                    restrictedPages.forEach(page => {
-                        const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
-                        const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                        
-                        if (mobileLink) mobileLink.remove();
-                        if (sidebarLink) sidebarLink.remove();
-                    });
-                }
-
-                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
-                
-                const container = document.getElementById('sidebar-container');
-                container.className = sidebarSource.className;
-                container.id = "sidebar-menu";
-                container.innerHTML = sidebarSource.innerHTML;
-                
-                // Adjust highlighting classes for links perfectly
-                container.querySelectorAll('a').forEach(link => {
-                    if (link.getAttribute('href') === 'schools-map.html') {
-                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                    } else {
-                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                    }
-                });
-                
-                lucide.createIcons();
-            }).catch(err => {
-                console.error("Error building navigation layout framework structure:", err);
-            });
-        }
     </script>
     <script src="profile-global.js"></script>
 </body>

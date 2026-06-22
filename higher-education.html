@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/shared-modals.js"></script>
+    <script src="js/shared-nav.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -112,7 +114,7 @@
         });
 
         function listenToAuthSession() {
-            buildSecuredNavigation();
+            buildSecuredNavigation("higher-education.html");
 
             firebase.auth().onAuthStateChanged(user => {
                 const emailContainer = document.getElementById("dropdown-user-email");
@@ -154,7 +156,7 @@
                             }
                         });
 
-                        buildSecuredNavigation();
+                        buildSecuredNavigation("higher-education.html");
                     }).catch(err => {
                         console.error(err);
                         window.location.href = "login.html";
@@ -180,15 +182,10 @@
             customSchoolPhotoBase64 = "";
             document.getElementById("school-image-preview").innerHTML = `<i data-lucide="building" class="w-5 h-5 text-slate-500"></i>`;
             lucide.createIcons();
-            document.getElementById("add-school-modal").classList.remove("hidden");
+            showModal("add-school-modal");
         }
-        
-        function closeSchoolModal() { document.getElementById("add-school-modal").classList.add("hidden"); }
 
-        function previewSchoolImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
+        function closeSchoolModal() { hideModal("add-school-modal"); }
                 reader.onload = function(e) {
                     customSchoolPhotoBase64 = e.target.result;
                     document.getElementById("school-image-preview").innerHTML = `<img src="${customSchoolPhotoBase64}" class="w-full h-full object-cover">`;
@@ -238,7 +235,7 @@
             document.getElementById("campus-title").innerText = schoolName;
             const container = document.getElementById("campus-members-list");
             container.innerHTML = `<p class="text-slate-400 py-4 text-center">Loading...</p>`;
-            document.getElementById("view-campus-members-modal").classList.remove("hidden");
+            showModal("view-campus-members-modal");
 
             db.collection('members').where('target', '==', schoolName).get()
             .then(snapshot => {
@@ -265,7 +262,7 @@
             .catch(err => container.innerHTML = `<p class="text-rose-400 py-4 text-center">Error: ${err.message}</p>`);
         }
 
-        function closeCampusModal() { document.getElementById("view-campus-members-modal").classList.add("hidden"); }
+        function closeCampusModal() { hideModal("view-campus-members-modal"); }
 
         function refreshGrid() {
             const grid = document.getElementById("schools-grid");
@@ -293,39 +290,6 @@
             lucide.createIcons();
         }
 
-        function buildSecuredNavigation() {
-            fetch('index.html').then(res => res.text()).then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const mobileSource = doc.querySelector('.md\\:hidden');
-                const sidebarSource = doc.querySelector('aside');
-
-                if (currentUserRole === "Creative Arts Leader") {
-                    const restrictedPages = ['users.html', 'offerings.html']; 
-                    restrictedPages.forEach(page => {
-                        const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
-                        const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                        if (mobileLink) mobileLink.remove();
-                        if (sidebarLink) sidebarLink.remove();
-                    });
-                }
-
-                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
-                const container = document.getElementById('sidebar-container');
-                container.className = sidebarSource.className;
-                container.id = "sidebar-menu";
-                container.innerHTML = sidebarSource.innerHTML;
-                
-                container.querySelectorAll('a').forEach(link => {
-                    if (link.getAttribute('href') === 'higher-education.html') {
-                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                    } else {
-                        link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                    }
-                });
-                lucide.createIcons();
-            });
-        }
     </script>
     <script src="profile-global.js"></script>
 </body>

@@ -225,6 +225,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/shared-modals.js"></script>
+    <script src="js/shared-nav.js"></script>
 
     <!-- Operational Application Code Engine Script Logic Segment -->
     <script>
@@ -242,7 +244,7 @@
         });
 
         function listenToAuthSession() {
-            buildSecuredNavigation();
+            buildSecuredNavigation("transport.html");
 
             auth.onAuthStateChanged(user => {
                 if (!user) {
@@ -262,7 +264,7 @@
                     currentUserRole = snapshot.docs[0].data().role;
                     
                     // Re-run the navigation architecture logic using the parsed credentials
-                    buildSecuredNavigation();
+                    buildSecuredNavigation("transport.html");
                     applyPrivilegedLayoutRules();
                     listenToTransportDatabaseStream();
 
@@ -291,17 +293,7 @@
             }
         }
 
-        function toggleMobileMenu() {
-            const menu = document.getElementById("sidebar-menu");
-            const backdrop = document.getElementById("sidebar-backdrop");
-            if (menu) {
-                const isOpen = !menu.classList.contains("-translate-x-full");
-                menu.classList.toggle("-translate-x-full");
-                if (backdrop) backdrop.classList.toggle("hidden", isOpen);
-            }
-        }
-
-        function listenToTransportDatabaseStream() {
+function listenToTransportDatabaseStream() {
             transportCollection.onSnapshot(snapshot => {
                 driversList = [];
                 snapshot.forEach(doc => {
@@ -322,11 +314,11 @@
             currentUploadedImageBase64 = "";
             document.getElementById("driver-avatar-preview").innerHTML = `<i data-lucide="user" class="w-6 h-6 text-slate-400"></i>`;
             lucide.createIcons();
-            document.getElementById("driver-modal").classList.remove("hidden");
+            showModal("driver-modal");
         }
 
         function closeDriverModal() {
-            document.getElementById("driver-modal").classList.add("hidden");
+            hideModal("driver-modal");
         }
 
         function convertPhotoToBase64(event) {
@@ -368,11 +360,11 @@
             }
 
             lucide.createIcons();
-            document.getElementById("view-driver-modal").classList.remove("hidden");
+            showModal("view-driver-modal");
         }
 
         function closeViewDriverModal() {
-            document.getElementById("view-driver-modal").classList.add("hidden");
+            hideModal("view-driver-modal");
         }
 
         function renderDriversTable(data) {
@@ -467,7 +459,7 @@
             }
 
             lucide.createIcons();
-            document.getElementById("driver-modal").classList.remove("hidden");
+            showModal("driver-modal");
         }
 
         function deleteDriverRecord(id) {
@@ -502,58 +494,7 @@
             }
         }
 
-        function buildSecuredNavigation() {
-            fetch('index.html')
-                .then(res => res.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    
-                    const mobileSource = doc.querySelector('.md\\:hidden');
-                    const sidebarSource = doc.querySelector('aside');
-
-                    if (!mobileSource || !sidebarSource) return;
-
-                    const normalizedRole = (currentUserRole || "").trim().toLowerCase();
-
-                    // Security-Level Gate Check
-                    if (normalizedRole === "creative arts leader") {
-                        const restrictedPages = ['staff.html', 'offering.html']; 
-
-                        restrictedPages.forEach(page => {
-                            const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
-                            const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                            
-                            if (mobileLink) mobileLink.remove();
-                            if (sidebarLink) sidebarLink.remove();
-                        });
-                    }
-
-                    // Render carefully to screen elements
-                    const mobileTopBar = document.getElementById('mobile-top-bar');
-                    const container = document.getElementById('sidebar-container');
-
-                    if (mobileTopBar) mobileTopBar.innerHTML = mobileSource.innerHTML;
-                    
-                    if (container) {
-                        container.className = sidebarSource.className;
-                        container.id = "sidebar-menu";
-                        container.innerHTML = sidebarSource.innerHTML;
-                        
-                        // Style elements to show the new page link highlighted when active
-                        container.querySelectorAll('a').forEach(link => {
-                            if (link.getAttribute('href') === 'transport.html') {
-                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                            } else {
-                                link.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                            }
-                        });
-                    }
-                    
-                    lucide.createIcons();
-                })
-                .catch(err => console.error("Error setting page scaffolding templates: ", err));
-        }
     </script>
+    <script src="profile-global.js"></script>
 </body>
 </html>

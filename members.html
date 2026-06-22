@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/shared-modals.js"></script>
+    <script src="js/shared-nav.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -322,7 +324,7 @@
                                 }
                             }
 
-                            buildSecuredNavigation();
+                            buildSecuredNavigation("members.html");
                             
                             filterMembers();
 
@@ -401,7 +403,7 @@
                 document.getElementById("view-avatar-upload-trigger").classList.remove("hidden");
                 document.getElementById("view-save-profile-btn").classList.remove("hidden");
 
-                document.getElementById("view-member-modal").classList.remove("hidden");
+                showModal("view-member-modal");
                 lucide.createIcons();
             }
         }
@@ -479,11 +481,11 @@
             currentPhotoBase64 = "";
             document.getElementById("image-preview-container").innerHTML = `<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>`;
             lucide.createIcons();
-            document.getElementById("add-member-modal").classList.remove("hidden");
+            showModal("add-member-modal");
             adjustConditionalInputs();
         }
 
-        function closeModal() { document.getElementById("add-member-modal").classList.add("hidden"); }
+        function closeModal() { hideModal("add-member-modal"); }
 
         function openViewModal(id) {
             const m = initialMembers.find(item => item.id === id || item.id == id);
@@ -562,12 +564,12 @@
             }
 
             lucide.createIcons();
-            document.getElementById("view-member-modal").classList.remove("hidden");
+            showModal("view-member-modal");
         }
 
         function closeViewModal() { 
             isDirectAccountPropertiesView = false;
-            document.getElementById("view-member-modal").classList.add("hidden"); 
+            hideModal("view-member-modal"); 
         }
 
         function previewImage(event) {
@@ -582,7 +584,6 @@
             }
         }
 
-        function toggleMobileMenu() { document.getElementById("sidebar-menu").classList.toggle("-translate-x-full"); }
 
         function adjustConditionalInputs(preSelectedTarget = "") {
             const occ = document.getElementById("m-occ").value;
@@ -731,7 +732,7 @@
                 document.getElementById("image-preview-container").innerHTML = `<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>`;
             }
             lucide.createIcons();
-            document.getElementById("add-member-modal").classList.remove("hidden");
+            showModal("add-member-modal");
         }
 
         function deleteMember(id) {
@@ -774,39 +775,6 @@
             }
         }
 
-        function buildSecuredNavigation() {
-            fetch('index.html').then(res => res.text()).then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const mobileSource = doc.querySelector('.md\\:hidden');
-                const sidebarSource = doc.querySelector('aside');
-
-                if (currentUserRole === "Creative Arts Leader") {
-                    const restrictedPages = ['users.html', 'offerings.html']; 
-
-                    restrictedPages.forEach(page => {
-                        const mobileLink = mobileSource.querySelector(`a[href="${page}"]`);
-                        const sidebarLink = sidebarSource.querySelector(`a[href="${page}"]`);
-                        
-                        if (mobileLink) mobileLink.remove();
-                        if (sidebarLink) sidebarLink.remove();
-                    });
-                }
-
-                document.getElementById('mobile-top-bar').innerHTML = mobileSource.innerHTML;
-                
-                const container = document.getElementById('sidebar-container');
-                container.className = sidebarSource.className;
-                container.id = "sidebar-menu";
-                container.innerHTML = sidebarSource.innerHTML;
-                
-                container.querySelector('a[href="index.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-white font-medium transition";
-                container.querySelector('a[href="members.html"]').className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-white bg-indigo-600 font-medium transition";
-                
-                lucide.createIcons();
-            });
-        }
     </script>
 </body>
 </html>
