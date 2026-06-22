@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -17,6 +18,13 @@
     <aside id="sidebar-container"></aside>
 
     <div class="flex-1 h-screen flex flex-col overflow-hidden">
+        <!-- Mobile action bar -->
+        <div class="md:hidden bg-slate-900 border-b border-slate-800 px-4 py-2 flex justify-between items-center shrink-0">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Members Directory</span>
+            <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer shadow">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add Member
+            </button>
+        </div>
         <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 hidden md:flex justify-between items-center shrink-0">
             <div class="flex items-center gap-3">
                 <h2 class="text-base font-bold text-white tracking-wide">Youth Roster Core Directory</h2>
@@ -50,16 +58,16 @@
         <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto">
             <section class="bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm">
                 
-                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex flex-col xl:flex-row gap-3 justify-between items-center">
-                    <div class="flex items-center justify-between w-full xl:w-auto gap-4">
+                <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-4">
                         <span class="text-xs font-bold text-slate-300 uppercase tracking-wider"> Roster Control</span>
                         <button onclick="toggleSort()" class="bg-slate-900 text-[11px] text-slate-300 px-2.5 py-1.5 border border-slate-700 rounded-lg hover:text-white flex items-center gap-1 cursor-pointer">
                             <i data-lucide="arrow-up-z-a" class="w-3.5 h-3.5"></i> Sort A-Z (<span id="sort-indicator">Asc</span>)
                         </button>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row gap-2 w-full xl:w-auto items-stretch sm:items-center">
-                        <input id="search-input" oninput="filterMembers()" type="text" placeholder="Search profiles..." class="bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-3 py-1.5 text-[11px] text-white focus:outline-none">
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <input id="search-input" oninput="filterMembers()" type="text" placeholder="Search profiles..." class="bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-3 py-1.5 text-[11px] text-white focus:outline-none flex-1 min-w-[140px]">
                         
                         <select id="filter-dept" onchange="filterMembers()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-slate-300 focus:outline-none cursor-pointer">
                             <option value="all">All Arts Sectors</option>
@@ -75,7 +83,7 @@
                             <option value="Inactive">Inactive Only</option>
                         </select>
 
-                        <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow">
+                        <button onclick="openAddModal()" class="hidden md:flex bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition items-center justify-center gap-1.5 cursor-pointer shadow">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add Member
                         </button>
                     </div>
@@ -230,16 +238,6 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
-            authDomain: "glorious-church-app.firebaseapp.com",
-            projectId: "glorious-church-app",
-            storageBucket: "glorious-church-app.firebasestorage.app",
-            messagingSenderId: "962372698082",
-            appId: "1:962372698082:web:e8491be558c6421d1dc3bb"
-        };
-
-        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const membersCollection = db.collection('members');

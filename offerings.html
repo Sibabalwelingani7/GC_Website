@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -25,9 +26,25 @@
             </button>
         </header>
 
+        <!-- Mobile action bar -->
+        <div class="md:hidden bg-[#0d1321] border-b border-slate-900 px-4 py-2 flex justify-between items-center shrink-0">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Offerings</span>
+            <button onclick="openOfferingsModal()" class="bg-emerald-600 hover:bg-emerald-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Collection
+            </button>
+        </div>
+
+        <!-- Mobile action bar -->
+        <div class="md:hidden bg-[#0d1321] border-b border-slate-900 px-4 py-2 flex justify-between items-center shrink-0">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Offerings</span>
+            <button onclick="openOfferingsModal()" class="bg-emerald-600 hover:bg-emerald-500 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 cursor-pointer shadow">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Collection
+            </button>
+        </div>
+
         <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-4xl w-full mx-auto">
             
-            <div class="grid grid-cols-2 gap-4 mb-5 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-xs">
                 <div class="bg-[#131b2e] border border-slate-900 p-4 rounded-xl shadow-sm">
                     <p class="text-slate-400 font-medium uppercase tracking-wider text-[10px]">Total Collections Stored</p>
                     <h3 id="stat-total-amount" class="text-xl font-bold text-emerald-400 mt-1">R 0.00</h3>
@@ -93,16 +110,6 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
-            authDomain: "glorious-church-app.firebaseapp.com",
-            projectId: "glorious-church-app",
-            storageBucket: "glorious-church-app.firebasestorage.app",
-            messagingSenderId: "962372698082",
-            appId: "1:962372698082:web:e8491be558c6421d1dc3bb"
-        };
-
-        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const staffCollection = db.collection('staff');

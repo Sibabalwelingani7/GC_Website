@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row overflow-hidden">
 
@@ -66,6 +67,14 @@
         <!-- Main Display Content Workspace Grid System -->
         <main class="p-4 md:p-6 overflow-y-auto flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6">
             
+            <!-- Mobile action bar -->
+            <div class="xl:col-span-3 md:hidden flex justify-between items-center -mb-2">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Calendar</span>
+                <button id="add-event-btn-mobile" onclick="openEventModal()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow">
+                    <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> Add Event
+                </button>
+            </div>
+            
             <!-- Grid Cell Block 1: Calendar Navigation Component Window -->
             <section class="xl:col-span-2 bg-slate-800 rounded-xl border border-slate-700/70 overflow-hidden shadow-sm flex flex-col">
                 <div class="p-4 border-b border-slate-700/70 bg-slate-800/40 flex items-center justify-between">
@@ -90,7 +99,7 @@
                     <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
                 </div>
 
-                <div id="calendar-days-grid" class="grid grid-cols-7 flex-1 bg-slate-800 divide-x divide-y divide-slate-700/40 border-b border-slate-700/40 min-h-[400px]">
+                <div id="calendar-days-grid" class="grid grid-cols-7 flex-1 bg-slate-800 divide-x divide-y divide-slate-700/40 border-b border-slate-700/40 min-h-[280px] md:min-h-[400px]">
                 </div>
             </section>
 
@@ -240,16 +249,7 @@
 
     <!-- Script Handling Mechanisms -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDE7_LLpLeSgrnDwSOBo0gr2gqHQz_IUpE",
-            authDomain: "glorious-church-app.firebaseapp.com",
-            projectId: "glorious-church-app",
-            storageBucket: "glorious-church-app.firebasestorage.app",
-            messagingSenderId: "962372698082",
-            appId: "1:962372698082:web:e8491be558c6421d1dc3bb"
-        };
-
-        firebase.initializeApp(firebaseConfig);
+        // Firebase instance initialized from shared js/firebase-init.js
         const db = firebase.firestore();
         const auth = firebase.auth();
         const eventsCollection = db.collection('events');
@@ -295,8 +295,10 @@
                         updateAvatarUIRenderers(staffData.avatar || "");
 
                         const addEventBtn = document.getElementById("add-event-btn");
+                        const addEventBtnMobile = document.getElementById("add-event-btn-mobile");
                         if (currentUserRole === "Admin" || currentUserRole === "Pastor") {
                             if (addEventBtn) addEventBtn.classList.remove("hidden");
+                            if (addEventBtnMobile) addEventBtnMobile.classList.remove("hidden");
                         }
 
                         buildSecuredNavigation();
