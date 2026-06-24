@@ -167,6 +167,11 @@ function listenToLocalAuthSession() {
                     }
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
+
+                    if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
+                        window.location.href = "index.html";
+                        return;
+                    }
                     
                     buildSecuredNavigation("users.html");
                     applyRoleVisibilityRules();

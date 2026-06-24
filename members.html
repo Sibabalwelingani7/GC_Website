@@ -251,13 +251,13 @@
         let personalPhotoBase64 = "";
         let currentAuthenticatedUser = null;
         let currentUserRole = ""; 
+        let currentStaffDepartment = "";
         let isDirectAccountPropertiesView = false;
 
         document.addEventListener("DOMContentLoaded", () => { 
             listenToCampusData(); 
             adjustConditionalInputs(); 
             listenToAuthSession();
-            listenToCloudData();
 
             document.addEventListener('click', function(e) {
                 const dropMenu = document.getElementById("profile-dropdown-menu");
@@ -297,6 +297,7 @@
 
                         let staffData = staffSnapshot.docs[0].data();
                         currentUserRole = staffData.role;
+                        currentStaffDepartment = staffData.department || "";
 
                         currentAuthenticatedUser = user;
                         if (emailContainer) emailContainer.innerText = user.email;
@@ -325,6 +326,11 @@
                             }
 
                             buildSecuredNavigation("members.html");
+                            listenToCloudData();
+
+                            if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
+                                document.querySelectorAll('[onclick="openAddModal()"]').forEach(btn => btn.style.display = 'none');
+                            }
                             
                             filterMembers();
 
@@ -461,7 +467,21 @@
         }
 
         function listenToCloudData() {
-            membersCollection.onSnapshot(snapshot => {
+            const isCALeader = (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader");
+
+            if (isCALeader && !currentStaffDepartment) {
+                initialMembers = [];
+                filterMembers();
+                const tbody = document.getElementById("member-table-body");
+                if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-amber-400 text-xs">⚠ No department assigned to your account. Contact an Admin to configure your department access.</td></tr>';
+                return;
+            }
+
+            let query = membersCollection;
+            if (isCALeader) {
+                query = membersCollection.where('dept', '==', currentStaffDepartment);
+            }
+            query.onSnapshot(snapshot => {
                 initialMembers = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
