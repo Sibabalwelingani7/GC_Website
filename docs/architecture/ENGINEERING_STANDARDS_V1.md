@@ -44,13 +44,11 @@ Rules:
 | Admin | All pages, all actions |
 | Pastor | All pages except users.html, all data actions |
 | CA Leader | Dashboard, Members (own dept), Creative Arts, Schools, Maps (own dept), Attendance (view), Offerings, Calendar |
-| Porter | Dashboard, Transport, Calendar |
 
 Actions:
 - Only Admin can manage staff users
 - Only Admin/Pastor can add/edit/delete members, attendance, offerings, events, schools
 - CA Leader: view-only on attendance; scoped to own department on members/maps
-- Porter: view-only on transport; view-only on calendar
 
 ---
 
