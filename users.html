@@ -147,6 +147,8 @@
         let sortAsc = true;
         let currentPhotoBase64 = "";
         let currentUserRole = "";
+        let currentUserEmail = "";
+        let pendingFlashId = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             listenToLocalAuthSession();
@@ -167,6 +169,7 @@ function listenToLocalAuthSession() {
                     }
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
+                    currentUserEmail = user.email;
 
                     if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
                         window.location.href = "index.html";
@@ -254,12 +257,62 @@ function listenToLocalAuthSession() {
                         <td class="py-2 px-4">${avatarContent}</td>
                         <td class="py-2 px-4 font-medium text-white">${staff.name || 'Unnamed'}</td>
                         <td class="py-2 px-4 font-mono text-slate-400">${staff.email || '—'}</td>
-                        <td class="py-2 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-900 border border-slate-700/60 text-indigo-300">${staff.role || 'Staff'}</span></td>
+                        <td class="py-2 px-4">${buildRoleCell(staff)}</td>
                         ${actionButtons}
                     </tr>
                 `;
             }).join('');
             lucide.createIcons();
+
+            if (pendingFlashId) {
+                const flashSelect = tbody.querySelector(`select[data-doc-id="${pendingFlashId}"]`);
+                pendingFlashId = null;
+                if (flashSelect) {
+                    flashSelect.classList.remove('border-slate-700/60', 'border-rose-500');
+                    flashSelect.classList.add('border-emerald-500');
+                    setTimeout(() => {
+                        flashSelect.classList.remove('border-emerald-500');
+                        flashSelect.classList.add('border-slate-700/60');
+                    }, 1500);
+                }
+            }
+        }
+
+        function buildRoleCell(staff) {
+            const isAdmin = (currentUserRole || "").trim().toLowerCase() === "admin";
+            const isSelf = staff.email === currentUserEmail;
+            if (isAdmin && !isSelf) {
+                return `<select
+                    data-doc-id="${staff.id}"
+                    onchange="updateStaffRole('${staff.id}', this)"
+                    class="role-dropdown bg-slate-900 border border-slate-700/60 text-indigo-300 text-[10px] font-medium rounded px-2 py-0.5 focus:outline-none cursor-pointer transition-colors"
+                >
+                    <option value="Admin" ${staff.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                    <option value="Pastor" ${staff.role === 'Pastor' ? 'selected' : ''}>Pastor</option>
+                    <option value="CA Leader" ${staff.role === 'CA Leader' ? 'selected' : ''}>CA Leader</option>
+                </select>`;
+            }
+            return `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-900 border border-slate-700/60 text-indigo-300">${staff.role || 'Staff'}</span>`;
+        }
+
+        function updateStaffRole(docId, selectEl) {
+            const newRole = selectEl.value;
+            const previousRole = staffMembers.find(s => s.id === docId)?.role || "";
+            if (newRole === previousRole) return;
+
+            staffCollection.doc(docId).update({ role: newRole })
+                .then(() => {
+                    pendingFlashId = docId;
+                })
+                .catch(() => {
+                    selectEl.value = previousRole;
+                    selectEl.classList.remove('border-slate-700/60', 'border-emerald-500');
+                    selectEl.classList.add('border-rose-500');
+                    setTimeout(() => {
+                        selectEl.classList.remove('border-rose-500');
+                        selectEl.classList.add('border-slate-700/60');
+                    }, 1500);
+                });
         }
 
         function filterStaff() {
