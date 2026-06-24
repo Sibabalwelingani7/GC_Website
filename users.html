@@ -148,7 +148,6 @@
         let currentPhotoBase64 = "";
         let currentUserRole = "";
         let currentUserEmail = "";
-        let pendingFlashId = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             listenToLocalAuthSession();
@@ -264,18 +263,6 @@ function listenToLocalAuthSession() {
             }).join('');
             lucide.createIcons();
 
-            if (pendingFlashId) {
-                const flashSelect = tbody.querySelector(`select[data-doc-id="${pendingFlashId}"]`);
-                pendingFlashId = null;
-                if (flashSelect) {
-                    flashSelect.classList.remove('border-slate-700/60', 'border-rose-500');
-                    flashSelect.classList.add('border-emerald-500');
-                    setTimeout(() => {
-                        flashSelect.classList.remove('border-emerald-500');
-                        flashSelect.classList.add('border-slate-700/60');
-                    }, 1500);
-                }
-            }
         }
 
         function buildRoleCell(staff) {
@@ -302,7 +289,16 @@ function listenToLocalAuthSession() {
 
             staffCollection.doc(docId).update({ role: newRole })
                 .then(() => {
-                    pendingFlashId = docId;
+                    const tbody = document.getElementById('staff-table-body');
+                    const flashSelect = tbody ? tbody.querySelector(`select[data-doc-id="${docId}"]`) : null;
+                    if (flashSelect) {
+                        flashSelect.classList.remove('border-slate-700/60', 'border-rose-500');
+                        flashSelect.classList.add('border-emerald-500');
+                        setTimeout(() => {
+                            flashSelect.classList.remove('border-emerald-500');
+                            flashSelect.classList.add('border-slate-700/60');
+                        }, 1500);
+                    }
                 })
                 .catch(() => {
                     selectEl.value = previousRole;
