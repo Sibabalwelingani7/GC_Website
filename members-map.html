@@ -108,36 +108,31 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             }).addTo(map);
 
-            // Generic structural demographic layout pins mapping congregational sizes
-            const memberHubs = [
-                { region: "Belhar Fellowship Hub", coords: [-33.9450, 18.6150], count: 85, lead: "Pastor G. Jacobs" },
-                { region: "Delft Community Cell", coords: [-33.9760, 18.5940], count: 62, lead: "Brother M. Ndlovu" },
-                { region: "Bellville Group Circle", coords: [-33.8940, 18.6290], count: 41, lead: "Sister L. Botha" },
-                { region: "Mitchells Plain Outreach", coords: [-34.0480, 18.6040], count: 110, lead: "Pastor D. Williams" },
-                { region: "Khayelitsha Fellowship", coords: [-34.0210, 18.6780], count: 94, lead: "Evangelist J. Sithole" },
-                { region: "Cape Town Central Study", coords: [-33.9250, 18.4230], count: 35, lead: "Sister A. Daniels" }
-            ];
+            const counterEl = document.getElementById("member-counter");
 
-            // Render descriptive map clusters manually via Leaflet bounds loops
-            memberHubs.forEach(hub => {
-                const marker = L.marker(hub.coords).addTo(map);
-                
-                const popupContent = `
-                    <div class="p-1">
-                        <h4 class="font-bold text-emerald-400 text-xs mb-0.5">${hub.region}</h4>
-                        <p class="text-[10px] text-slate-300 font-sans">Leader: <strong>${hub.lead}</strong></p>
-                        <div class="mt-2 pt-1 border-t border-slate-700/60 text-[9px] text-slate-400 flex justify-between items-center">
-                            <span class="bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded text-[9px] font-mono">${hub.count} Active Members</span>
+            firebase.firestore().collection('members').get().then(snapshot => {
+                let plotCount = 0;
+
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    if (!m.location || typeof m.location.lat !== 'number' || typeof m.location.lng !== 'number') return;
+
+                    const marker = L.marker([m.location.lat, m.location.lng]).addTo(map);
+                    marker.bindPopup(`
+                        <div class="p-1">
+                            <h4 class="font-bold text-emerald-400 text-xs mb-0.5">${m.name || 'Unnamed'}</h4>
+                            <p class="text-[10px] text-slate-300 font-sans">${m.address || 'No address'}</p>
                         </div>
-                    </div>
-                `;
-                
-                marker.bindPopup(popupContent);
+                    `);
+                    plotCount++;
+                });
+
+                if (counterEl) counterEl.innerText = `${plotCount} Member${plotCount !== 1 ? 's' : ''} Mapped`;
+            }).catch(() => {
+                if (counterEl) counterEl.innerText = 'Map unavailable';
             });
 
             map.on('popupopen', () => { lucide.createIcons(); });
-            const counterEl = document.getElementById("member-counter");
-            if (counterEl) counterEl.innerText = `${memberHubs.length} Clusters Charted`;
         }
 
         // Shared universal dynamic template sidebar frame logic injection

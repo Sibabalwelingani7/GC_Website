@@ -761,10 +761,25 @@
             }
         }
 
+        async function geocodeAddress(address) {
+            if (!address || !address.trim()) return null;
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`;
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                const results = await response.json();
+                if (!results || results.length === 0) return null;
+                return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
+            } catch {
+                return null;
+            }
+        }
+
         function handleFormSubmit(e) {
             e.preventDefault();
             const idValue = document.getElementById("edit-index").value;
             const occ = document.getElementById("m-occ").value;
+            const newAddress = document.getElementById("m-address").value;
             
             let subData = "";
             if(occ === "University" || occ === "College") {
@@ -774,7 +789,7 @@
             const dataPackage = {
                 name: document.getElementById("m-name").value,
                 phone: document.getElementById("m-phone").value,
-                address: document.getElementById("m-address").value,
+                address: newAddress,
                 dob: document.getElementById("m-dob").value,
                 dept: document.getElementById("m-dept").value,
                 occ: occ,
@@ -783,15 +798,28 @@
                 photo: currentPhotoBase64
             };
 
-            if(idValue) {
-                membersCollection.doc(idValue).update(dataPackage)
-                .then(() => { closeModal(); e.target.reset(); })
-                .catch(err => alert("Error modifying data payload: " + err.message));
+            const existingMember = idValue ? initialMembers.find(item => item.id === idValue) : null;
+            const addressChanged = !existingMember || (existingMember.address || "") !== newAddress;
+
+            const saveRecord = (coords) => {
+                if (coords) dataPackage.location = coords;
+
+                if (idValue) {
+                    membersCollection.doc(idValue).update(dataPackage)
+                    .then(() => { closeModal(); e.target.reset(); })
+                    .catch(err => alert("Error modifying data payload: " + err.message));
+                } else {
+                    dataPackage.attendance = "Active";
+                    membersCollection.add(dataPackage)
+                    .then(() => { closeModal(); e.target.reset(); })
+                    .catch(err => alert("Error appending data configuration payload: " + err.message));
+                }
+            };
+
+            if (addressChanged) {
+                geocodeAddress(newAddress).then(coords => saveRecord(coords));
             } else {
-                dataPackage.attendance = "Active";
-                membersCollection.add(dataPackage)
-                .then(() => { closeModal(); e.target.reset(); })
-                .catch(err => alert("Error appending data configuration payload: " + err.message));
+                saveRecord(null);
             }
         }
 
