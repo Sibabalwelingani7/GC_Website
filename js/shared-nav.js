@@ -11,7 +11,7 @@ function buildSecuredNavigation(activeHref) {
 
             if (!mobileSource || !sidebarSource) return;
 
-            if ((typeof currentUserRole !== 'undefined') && (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader")) {
+            if ((typeof currentUserRole !== 'undefined') && (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader" || currentUserRole === "Pastor")) {
                 ['users.html'].forEach(page => {
                     const ml = mobileSource.querySelector(`a[href="${page}"]`);
                     const sl = sidebarSource.querySelector(`a[href="${page}"]`);
