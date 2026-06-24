@@ -129,6 +129,10 @@
                         let staffData = staffSnapshot.docs[0].data();
                         currentUserRole = staffData.role;
 
+                        if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
+                            document.querySelectorAll('[onclick="openAttendanceModal()"]').forEach(btn => btn.style.display = 'none');
+                        }
+
                         const roleIndicator = document.getElementById("sidebar-role-indicator");
                         if (roleIndicator) roleIndicator.innerText = currentUserRole;
 
