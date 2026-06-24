@@ -168,7 +168,7 @@ function listenToLocalAuthSession() {
                     let userData = snapshot.docs[0].data();
                     currentUserRole = userData.role;
 
-                    if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
+                    if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader" || currentUserRole === "Pastor") {
                         window.location.href = "index.html";
                         return;
                     }
