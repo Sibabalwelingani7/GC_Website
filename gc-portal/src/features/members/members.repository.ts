@@ -1,4 +1,4 @@
-import { where, type QueryConstraint } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 import { BaseRepository } from '@/services/base.repository';
 import { COLLECTIONS } from '@/constants';
 import type { Member } from './types';

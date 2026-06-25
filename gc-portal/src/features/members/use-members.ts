@@ -31,7 +31,7 @@ export function useMembers() {
         setLoading(false);
         setError(null);
       },
-      (err) => {
+      () => {
         setError('Failed to load members.');
         setLoading(false);
       }

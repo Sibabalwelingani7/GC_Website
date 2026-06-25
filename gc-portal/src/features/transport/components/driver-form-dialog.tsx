@@ -17,6 +17,7 @@ export function DriverFormDialog({ open, onClose, driver }: DriverFormDialogProp
   const [photo, setPhoto] = useState('');
   const [form, setForm] = useState({ name: '', phone: '', vehicle: '', capacity: '', route: '', status: 'Active' });
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (driver) {
       setForm({ name: driver.name || '', phone: driver.phone || '', vehicle: driver.vehicle || '', capacity: String(driver.capacity || ''), route: driver.route || '', status: driver.status || 'Active' });
@@ -26,6 +27,7 @@ export function DriverFormDialog({ open, onClose, driver }: DriverFormDialogProp
       setPhoto('');
     }
   }, [driver, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
 

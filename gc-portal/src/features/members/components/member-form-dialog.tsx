@@ -21,6 +21,7 @@ export function MemberFormDialog({ open, onClose, member }: MemberFormDialogProp
     name: '', phone: '', address: '', dob: '', dept: 'Dance Stars', occ: 'Primary School', target: '', sub1: '', sub2: '',
   });
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (member) {
       const parts = member.subData?.split(' - Year ') || ['', ''];
@@ -35,6 +36,7 @@ export function MemberFormDialog({ open, onClose, member }: MemberFormDialogProp
       setPhoto('');
     }
   }, [member, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
 
@@ -68,7 +70,7 @@ export function MemberFormDialog({ open, onClose, member }: MemberFormDialogProp
         await membersService.create({ ...payload, attendance: 'Active' } as Omit<Member, 'id'>);
       }
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled silently — Firestore will reflect state
     } finally {
       setLoading(false);

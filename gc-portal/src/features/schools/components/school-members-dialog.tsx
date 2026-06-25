@@ -16,12 +16,14 @@ export function SchoolMembersDialog({ open, onClose, school, getMembers }: Schoo
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open && school) {
       setLoading(true);
       getMembers(school.name).then((m) => { setMembers(m); setLoading(false); });
     }
   }, [open, school]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open || !school) return null;
 

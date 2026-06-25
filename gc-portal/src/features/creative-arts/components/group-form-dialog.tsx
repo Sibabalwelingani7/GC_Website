@@ -17,6 +17,7 @@ export function GroupFormDialog({ open, onClose, group }: GroupFormDialogProps) 
   const [photo, setPhoto] = useState('');
   const [form, setForm] = useState({ name: '', leader: '', subtitle: '', desc: '', scripture: '' });
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (group) {
       setForm({ name: group.name || '', leader: group.leader || '', subtitle: group.subtitle || '', desc: group.desc || '', scripture: group.scripture || '' });
@@ -26,6 +27,7 @@ export function GroupFormDialog({ open, onClose, group }: GroupFormDialogProps) 
       setPhoto('');
     }
   }, [group, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
 

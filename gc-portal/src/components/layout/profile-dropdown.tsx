@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { LogOut, ChevronDown, User } from 'lucide-react';
+import { LogOut, ChevronDown } from 'lucide-react';
 
 export function ProfileDropdown() {
   const [open, setOpen] = useState(false);

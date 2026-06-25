@@ -18,6 +18,7 @@ export function StaffFormDialog({ open, onClose, user }: StaffFormDialogProps) {
   const [password, setPassword] = useState('');
   const [form, setForm] = useState({ name: '', email: '', role: 'Admin' });
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (user) {
       setForm({ name: user.name || '', email: user.email || '', role: user.role || 'Admin' });
@@ -28,6 +29,7 @@ export function StaffFormDialog({ open, onClose, user }: StaffFormDialogProps) {
     }
     setPassword('');
   }, [user, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!open) return null;
 

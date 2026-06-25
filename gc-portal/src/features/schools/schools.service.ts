@@ -1,5 +1,5 @@
 import { schoolsRepository } from './schools.repository';
-import type { School, SchoolType } from './types';
+import type { SchoolType } from './types';
 
 export const schoolsService = {
   async create(data: { name: string; address: string; photo: string; instType: SchoolType }) {
