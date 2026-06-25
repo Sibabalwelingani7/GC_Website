@@ -7,6 +7,7 @@ import { usePermissions } from '@/hooks/use-permissions';
 import { Sidebar } from '@/components/layout/sidebar';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { Header } from '@/components/layout/header';
+import { LoadingScreen } from '@/components/shared/loading-screen';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -26,14 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [loading, user, pathname, canAccess, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-400 text-sm">Loading...</div>
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!user) return null;
 
   return (
