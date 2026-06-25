@@ -6,13 +6,22 @@ function buildSecuredNavigation(activeHref) {
         .then(res => res.text())
         .then(html => {
             const doc = new DOMParser().parseFromString(html, 'text/html');
-            const mobileSource = doc.querySelector('.md\\:hidden');
-            const sidebarSource = doc.getElementById('sidebar-menu') || doc.querySelector('aside');
+            const mobileSource = doc.getElementById('mobile-top-bar') || doc.querySelector('body > .md\\:hidden');
+            const sidebarSource = doc.getElementById('sidebar-menu') || doc.querySelector('body > aside');
+            const backdropSource = doc.getElementById('sidebar-backdrop');
 
-            if (!mobileSource || !sidebarSource) return;
+            if (!mobileSource || !sidebarSource) {
+                console.error('Shared navigation template is missing source elements.');
+                return;
+            }
+
+            if (backdropSource && !document.getElementById('sidebar-backdrop')) {
+                const newBackdrop = backdropSource.cloneNode(true);
+                document.body.insertBefore(newBackdrop, document.body.firstChild);
+            }
 
             if ((typeof currentUserRole !== 'undefined') && (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader")) {
-                ['users.html'].forEach(page => {
+                ['users.html', 'transport.html'].forEach(page => {
                     const ml = mobileSource.querySelector(`a[href="${page}"]`);
                     const sl = sidebarSource.querySelector(`a[href="${page}"]`);
                     if (ml) ml.remove();
