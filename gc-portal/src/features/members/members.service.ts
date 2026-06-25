@@ -2,11 +2,19 @@ import { membersRepository } from './members.repository';
 import type { Member } from './types';
 
 export const membersService = {
-  async getAll(): Promise<Member[]> {
-    return membersRepository.getAll() as Promise<Member[]>;
+  async create(data: Omit<Member, 'id'>) {
+    return membersRepository.create(data);
   },
 
-  async getByDepartment(dept: string): Promise<Member[]> {
-    return membersRepository.getByDepartment(dept) as Promise<Member[]>;
+  async update(id: string, data: Partial<Omit<Member, 'id'>>) {
+    return membersRepository.update(id, data);
+  },
+
+  async remove(id: string) {
+    return membersRepository.remove(id);
+  },
+
+  async updateAttendance(id: string, status: string) {
+    return membersRepository.update(id, { attendance: status });
   },
 };
