@@ -1,22 +1,9 @@
-import { where } from 'firebase/firestore';
+import { where, type QueryConstraint } from 'firebase/firestore';
 import { BaseRepository } from '@/services/base.repository';
 import { COLLECTIONS } from '@/constants';
+import type { Member } from './types';
 
-export interface Member {
-  name: string;
-  phone: string;
-  address: string;
-  dob: string;
-  dept: string;
-  occ: string;
-  target: string;
-  subData?: string;
-  photo?: string;
-  email?: string;
-  attendance: string;
-}
-
-class MembersRepository extends BaseRepository<Member> {
+class MembersRepository extends BaseRepository<Omit<Member, 'id'>> {
   constructor() {
     super(COLLECTIONS.MEMBERS);
   }
