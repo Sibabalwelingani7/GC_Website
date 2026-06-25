@@ -1,23 +1,12 @@
-import { membersRepository, type Member } from './members.repository';
+import { membersRepository } from './members.repository';
+import type { Member } from './types';
 
 export const membersService = {
-  async getAll() {
-    return membersRepository.getAll();
+  async getAll(): Promise<Member[]> {
+    return membersRepository.getAll() as Promise<Member[]>;
   },
 
-  async getByDepartment(dept: string) {
-    return membersRepository.getByDepartment(dept);
-  },
-
-  async create(data: Omit<Member, 'id'>) {
-    return membersRepository.create(data);
-  },
-
-  async update(id: string, data: Partial<Member>) {
-    return membersRepository.update(id, data);
-  },
-
-  async remove(id: string) {
-    return membersRepository.remove(id);
+  async getByDepartment(dept: string): Promise<Member[]> {
+    return membersRepository.getByDepartment(dept) as Promise<Member[]>;
   },
 };
