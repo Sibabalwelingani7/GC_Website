@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-init.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/permissions.js"></script>
     <script src="js/shared-modals.js"></script>
     <script src="js/shared-nav.js"></script>
 </head>
@@ -257,7 +259,23 @@
         document.addEventListener("DOMContentLoaded", () => { 
             listenToCampusData(); 
             adjustConditionalInputs(); 
-            listenToAuthSession();
+
+            GCAuth.onReady(() => {
+                GCPermissions.enforcePageAccess();
+                buildSecuredNavigation("members.html");
+
+                currentAuthenticatedUser = GCAuth.currentUser;
+                currentUserRole = GCAuth.currentRole;
+                currentStaffDepartment = (GCAuth.staffData && GCAuth.staffData.department) || "";
+
+                listenToCloudData();
+
+                if (currentUserRole === "CA Leader") {
+                    document.querySelectorAll('[onclick="openAddModal()"]').forEach(function(btn) { btn.style.display = 'none'; });
+                }
+
+                filterMembers();
+            });
 
             document.addEventListener('click', function(e) {
                 const dropMenu = document.getElementById("profile-dropdown-menu");
@@ -278,74 +296,6 @@
                 if (!document.getElementById("add-member-modal").classList.contains("hidden")) {
                     const currentSelectedValue = document.getElementById("m-target")?.value || "";
                     adjustConditionalInputs(currentSelectedValue);
-                }
-            });
-        }
-
-        function listenToAuthSession() {
-            auth.onAuthStateChanged(user => {
-                const emailContainer = document.getElementById("dropdown-user-email");
-                const avatarContainer = document.getElementById("header-profile-avatar");
-                
-                if (user) {
-                    db.collection('staff').where("email", "==", user.email).get().then(staffSnapshot => {
-                        if (staffSnapshot.empty) {
-                            alert("Access Denied! Your email is not registered in the staff database registry.");
-                            auth.signOut().then(() => { window.location.href = "login.html"; });
-                            return;
-                        }
-
-                        let staffData = staffSnapshot.docs[0].data();
-                        currentUserRole = staffData.role;
-                        currentStaffDepartment = staffData.department || "";
-
-                        currentAuthenticatedUser = user;
-                        if (emailContainer) emailContainer.innerText = user.email;
-                        
-                        membersCollection.get().then(snapshot => {
-                            let matchedPhoto = "";
-                            let matchedInitials = "";
-                            
-                            snapshot.forEach(doc => {
-                                const data = doc.data();
-                                if ((data.email && data.email.toLowerCase() === user.email.toLowerCase()) || 
-                                    (data.name && user.email.toLowerCase().includes(data.name.split(' ')[0].toLowerCase()))) {
-                                    if (data.photo) matchedPhoto = data.photo;
-                                    if (data.name) matchedInitials = data.name.charAt(0);
-                                }
-                            });
-
-                            if (avatarContainer) {
-                                if (matchedPhoto) {
-                                    avatarContainer.innerHTML = `<img src="${matchedPhoto}" class="w-full h-full object-cover">`;
-                                } else if (matchedInitials) {
-                                    avatarContainer.innerHTML = matchedInitials;
-                                } else {
-                                    avatarContainer.innerHTML = (user.email || "U").charAt(0).toUpperCase();
-                                }
-                            }
-
-                            buildSecuredNavigation("members.html");
-                            listenToCloudData();
-
-                            if (currentUserRole === "CA Leader" || currentUserRole === "Creative Arts Leader") {
-                                document.querySelectorAll('[onclick="openAddModal()"]').forEach(btn => btn.style.display = 'none');
-                            }
-                            
-                            filterMembers();
-
-                        }).catch(err => console.error("Error setting up live user header photo context:", err));
-                    }).catch(err => {
-                        console.error("Authorization snapshot look up failure:", err);
-                        window.location.href = "login.html";
-                    });
-
-                } else {
-                    currentAuthenticatedUser = null;
-                    if (emailContainer) emailContainer.innerText = "No active session";
-                    if (avatarContainer) avatarContainer.innerHTML = `<i data-lucide="user" class="w-3 h-3"></i>`;
-                    lucide.createIcons();
-                    window.location.href = "login.html";
                 }
             });
         }
@@ -796,5 +746,6 @@
         }
 
     </script>
+    <script src="profile-global.js"></script>
 </body>
 </html>
