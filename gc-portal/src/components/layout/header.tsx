@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { navigationItems } from '@/config/navigation';
+import { Breadcrumbs } from './breadcrumbs';
+import { ProfileDropdown } from './profile-dropdown';
 
 export function Header() {
   const pathname = usePathname();
@@ -10,7 +12,11 @@ export function Header() {
 
   return (
     <header className="hidden md:flex bg-slate-900 border-b border-slate-800 px-6 py-4 justify-between items-center shrink-0">
-      <h2 className="text-base font-bold text-white tracking-wide">{title}</h2>
+      <div className="space-y-1">
+        <h2 className="text-base font-bold text-white tracking-wide">{title}</h2>
+        <Breadcrumbs />
+      </div>
+      <ProfileDropdown />
     </header>
   );
 }
