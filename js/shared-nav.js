@@ -27,6 +27,16 @@
         });
     }
 
+    // Ensure sidebar backdrop exists for mobile overlay
+    function ensureBackdrop() {
+        if (document.getElementById('sidebar-backdrop')) return;
+        var backdrop = document.createElement('div');
+        backdrop.id = 'sidebar-backdrop';
+        backdrop.className = 'hidden fixed inset-0 bg-black/50 z-30 md:hidden';
+        backdrop.onclick = toggleMobileMenu;
+        document.body.insertBefore(backdrop, document.body.firstChild);
+    }
+
     function buildSecuredNavigation(activeHref) {
         // Determine role: prefer GCAuth namespace, fall back to legacy global
         var role = (typeof GCAuth !== 'undefined' && GCAuth.currentRole)
@@ -37,7 +47,18 @@
             .then(function (res) { return res.text(); })
             .then(function (html) {
                 var doc = new DOMParser().parseFromString(html, 'text/html');
-                var mobileSource = doc.querySelector('.md\\:hidden');
+
+                // Find the mobile header — the div with md:hidden that contains
+                // the hamburger button (not the empty backdrop div)
+                var mobileHeaders = doc.querySelectorAll('.md\\:hidden');
+                var mobileSource = null;
+                for (var i = 0; i < mobileHeaders.length; i++) {
+                    if (mobileHeaders[i].querySelector('button')) {
+                        mobileSource = mobileHeaders[i];
+                        break;
+                    }
+                }
+
                 var sidebarSource = doc.getElementById('sidebar-menu') || doc.querySelector('aside');
 
                 if (!mobileSource || !sidebarSource) return;
@@ -45,6 +66,9 @@
                 // Apply role-based filtering
                 filterNavLinks(mobileSource, role);
                 filterNavLinks(sidebarSource, role);
+
+                // Ensure backdrop exists for mobile toggle
+                ensureBackdrop();
 
                 // Inject mobile top bar
                 var mobileTopBar = document.getElementById('mobile-top-bar');
