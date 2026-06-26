@@ -22,9 +22,10 @@ const AuthContext = createContext<AuthContextValue>({
 
 function normalizeRole(role: string | undefined): Role | null {
   if (!role) return null;
-  const r = role.trim();
-  if (r === 'Creative Arts Leader') return 'CA Leader';
-  if (r === 'Admin' || r === 'Pastor' || r === 'CA Leader') return r;
+  const r = role.trim().toLowerCase();
+  if (r === 'creative arts leader' || r === 'ca leader') return 'CA Leader';
+  if (r === 'admin') return 'Admin';
+  if (r === 'pastor') return 'Pastor';
   return null;
 }
 
